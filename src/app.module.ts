@@ -3,9 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
+import { AuthModule } from '@modules/auth/auth.module'
+import { UserModule } from '@modules/user/user.module'
+import { WalletModule } from '@modules/wallet/wallet.module'
+
 import { appConfig } from './app.config'
-import { AuthModule } from './auth/auth.module'
-import { UserModule } from './user/user.module'
 
 @Module({
     imports: [
@@ -16,6 +18,7 @@ import { UserModule } from './user/user.module'
             useFactory: (config: ConfigService) => config.get('typeorm') || {},
         }),
         UserModule,
+        WalletModule,
     ],
     providers: [
         { provide: APP_PIPE, useValue: new ValidationPipe({ whitelist: true }) },

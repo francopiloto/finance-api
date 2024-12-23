@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common'
+import { INestApplication, Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
@@ -18,7 +18,7 @@ async function bootstrap() {
     }
 
     await app.listen(process.env.PORT ?? 4000)
-    console.log(`Application is running on: ${await app.getUrl()}`)
+    Logger.log(`Application is running on: ${await app.getUrl()}`)
 }
 
 bootstrap()
