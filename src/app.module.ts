@@ -12,7 +12,7 @@ import { appConfig } from './app.config'
 @Module({
     imports: [
         AuthModule,
-        ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
+        ConfigModule.forRoot({ isGlobal: true, cache: true, load: [appConfig] }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService) => config.get('typeorm') || {},

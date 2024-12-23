@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
-import { ApiConflictResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { ApiBadRequestResponse, ApiConflictResponse } from '@nestjs/swagger'
 
 import { CreateUserDto } from '@modules/user/dtos/create-user.dto'
 
@@ -21,7 +21,7 @@ export class AuthController {
     @Post('signin')
     @HttpCode(HttpStatus.OK)
     @Public()
-    @ApiUnauthorizedResponse()
+    @ApiBadRequestResponse({ description: 'Invalid credentials' })
     signIn(@Body() body: SignInUserDto) {
         return this.authService.signIn(body)
     }

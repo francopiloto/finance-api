@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 
@@ -29,7 +29,7 @@ export class AuthService {
         const user = await this.userService.findOneByEmail(email)
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            throw new UnauthorizedException('Invalid credentials')
+            throw new BadRequestException('Invalid credentials')
         }
 
         return {
