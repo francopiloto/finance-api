@@ -6,8 +6,10 @@ import { Strategy } from 'passport-jwt'
 
 import { UserService } from '@modules/user/user.service'
 
+import { AuthStrategyName } from '../auth.constants'
+
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, AuthStrategyName.JWT) {
     constructor(
         private readonly userService: UserService,
         configService: ConfigService

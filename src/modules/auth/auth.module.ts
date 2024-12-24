@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
+import { User } from '@modules/user/entities/user.entity'
 import { UserModule } from '@modules/user/user.module'
 
 import { AuthController } from './auth.controller'
@@ -25,6 +26,7 @@ import { RefreshStrategy } from './strategies/refresh.strategy'
             }),
         }),
         TypeOrmModule.forFeature([Token]),
+        TypeOrmModule.forFeature([User]),
         UserModule,
     ],
     providers: [AuthService, JwtStrategy, RefreshStrategy, { provide: APP_GUARD, useClass: DefaultAuthGuard }],

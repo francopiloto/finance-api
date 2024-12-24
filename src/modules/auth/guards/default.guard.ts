@@ -3,10 +3,10 @@ import { Reflector } from '@nestjs/core'
 import { AuthGuard } from '@nestjs/passport'
 import { Observable } from 'rxjs'
 
-import { AuthStrategyType, DISABLE_DEFAULT_AUTH_GUARD_KEY } from '../auth.constants'
+import { AuthStrategyName, DISABLE_DEFAULT_AUTH_GUARD_KEY } from '../auth.constants'
 
 @Injectable()
-export class DefaultAuthGuard extends AuthGuard([AuthStrategyType.JWT]) {
+export class DefaultAuthGuard extends AuthGuard([AuthStrategyName.JWT]) {
     constructor(private readonly reflector: Reflector) {
         super()
     }

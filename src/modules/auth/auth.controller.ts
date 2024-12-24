@@ -1,7 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
 
-import { CreateUserDto } from '@modules/user/dtos/create-user.dto'
 import { User } from '@modules/user/entities/user.entity'
 
 import { AuthService } from './auth.service'
@@ -10,6 +9,7 @@ import { Public } from './decorators/public.decorator'
 import { AuthStrategyRefresh } from './decorators/refresh.decorator'
 import { CurrentUser } from './decorators/user.decorator'
 import { SignInUserDto } from './dtos/signin-user.dto'
+import { SignUpUserDto } from './dtos/signup-user.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +18,7 @@ export class AuthController {
     @Post('signup')
     @Public()
     @ApiConflictResponse({ description: 'Email already in use' })
-    signUp(@Body() data: CreateUserDto) {
+    signUp(@Body() data: SignUpUserDto) {
         return this.authService.signUp(data)
     }
 

@@ -1,7 +1,6 @@
 export const DISABLE_DEFAULT_AUTH_GUARD_KEY = 'isDefaultAuthGuardDisabled'
 
-export enum AuthStrategyType {
+export enum AuthStrategyName {
     JWT = 'jwt',
-    NONE = 'none',
-    REFRESH = 'refresh',
+    REFRESH = 'jwt-refresh',
 }

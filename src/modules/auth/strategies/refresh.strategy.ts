@@ -6,10 +6,11 @@ import { Strategy } from 'passport-jwt'
 
 import { UserService } from '@modules/user/user.service'
 
+import { AuthStrategyName } from '../auth.constants'
 import { AuthService } from '../auth.service'
 
 @Injectable()
-export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
+export class RefreshStrategy extends PassportStrategy(Strategy, AuthStrategyName.REFRESH) {
     constructor(
         private readonly userService: UserService,
         private readonly authService: AuthService,

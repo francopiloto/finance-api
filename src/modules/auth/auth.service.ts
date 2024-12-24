@@ -5,11 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm'
 import * as bcrypt from 'bcrypt'
 import { Repository } from 'typeorm'
 
-import { CreateUserDto } from '@modules/user/dtos/create-user.dto'
 import { User } from '@modules/user/entities/user.entity'
-import { UserService } from '@modules/user/user.service'
 
 import { SignInUserDto } from './dtos/signin-user.dto'
+import { SignUpUserDto } from './dtos/signup-user.dto'
 import { Token } from './entities/token.entity'
 
 @Injectable()
@@ -17,24 +16,31 @@ export class AuthService {
     constructor(
         @InjectRepository(Token)
         private readonly tokenRepository: Repository<Token>,
-        private readonly userService: UserService,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService
     ) {}
 
-    async signUp(data: CreateUserDto) {
-        if (await this.userService.findOneByEmail(data.email)) {
+    async signUp(data: SignUpUserDto) {
+        if (await this.userRepository.existsBy({ email: data.email })) {
             throw new ConflictException('Email already in use')
         }
 
         const salt = await bcrypt.genSalt(10)
         const password = await bcrypt.hash(data.password, salt)
 
-        return this.userService.create({ ...data, password })
+        const user = this.userRepository.create({ ...data, password })
+        return this.userRepository.save(user)
     }
 
     async signIn({ email, password, appId }: SignInUserDto) {
-        const user = await this.userService.findOneByEmail(email)
+        const user = await this.userRepository
+            .createQueryBuilder('user')
+            .select('user')
+            .addSelect('user.password')
+            .where('user.email = :email', { email })
+            .getOne()
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw new BadRequestException('Invalid credentials')
