@@ -18,7 +18,8 @@
         "forceConsistentCasingInFileNames": false,
         "noFallthroughCasesInSwitch": false,
         "paths": {
-            "@modules/*": ["./src/modules/*"]
+            "@modules/*": ["./src/modules/*"],
+            "@decorators/*": ["./src/decorators/*"]
         }
     }
 }

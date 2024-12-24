@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common'
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { ApiBadRequestResponse, ApiConflictResponse } from '@nestjs/swagger'
 
 import { User } from '@modules/user/entities/user.entity'
 
@@ -31,10 +31,7 @@ export class AuthController {
     }
 
     @Get('refresh')
-    @HttpCode(HttpStatus.OK)
     @AuthStrategyRefresh()
-    @ApiUnauthorizedResponse()
-    @ApiBearerAuth()
     refreshToken(@CurrentUser() user: User, @AuthInfo('appId') appId: string) {
         return this.authService.createTokens(user, appId)
     }

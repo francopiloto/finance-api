@@ -36,9 +36,9 @@ module.exports = {
                 pathGroups: [
                     { group: 'builtin', pattern: '@nestjs*', position: 'before' },
                     { group: 'external', pattern: '?!src*/**', position: 'before' },
-                    { group: 'external', pattern: '?!@modules*/**', position: 'before' },
+                    { group: 'external', pattern: '?!@{modules,decorators}*/**', position: 'before' },
                     { group: 'external', pattern: 'src*/**', position: 'after' },
-                    { group: 'external', pattern: '@modules*/**', position: 'after' },
+                    { group: 'external', pattern: '@{modules,decorators}*/**', position: 'after' },
                 ],
             },
         ],

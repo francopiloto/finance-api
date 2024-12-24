@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger'
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 import { User } from '@modules/user/entities/user.entity'
@@ -14,5 +15,6 @@ export class Wallet {
     description?: string
 
     @ManyToOne(() => User, { nullable: false })
+    @ApiHideProperty()
     user: User
 }

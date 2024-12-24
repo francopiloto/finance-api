@@ -50,6 +50,10 @@ export class AuthService {
     }
 
     async createTokens(user: User, appId: string) {
+        if (!user || !appId) {
+            throw new BadRequestException()
+        }
+
         await this.tokenRepository.delete({ user, appId })
 
         const token = await this.tokenRepository.save(this.tokenRepository.create({ user, appId }))
