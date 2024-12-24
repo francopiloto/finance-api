@@ -6,4 +6,7 @@ export class SignInUserDto {
 
     @IsString()
     password: string
+
+    @IsString()
+    appId: string
 }

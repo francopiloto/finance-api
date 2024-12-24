@@ -12,7 +12,7 @@ const typeormConfig: DataSourceOptions = {
     database: process.env.DB_NAME,
     entities: [`**/*.entity.${process.env.NODE_ENV === 'test' ? 'ts' : 'js'}`],
     migrations: ['migrations/*.js'],
-    synchronize: false,
+    synchronize: true,
 }
 
 export const dataSource = new DataSource(typeormConfig)
@@ -28,6 +28,7 @@ export async function appConfig() {
         jwt: {
             secret: process.env.JWT_SECRET,
             expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+            refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '1d',
         },
     }
 }

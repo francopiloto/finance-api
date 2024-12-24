@@ -13,6 +13,6 @@ export class Wallet {
     @Column({ nullable: true })
     description?: string
 
-    @ManyToOne(() => User, (user) => user.wallets)
-    owner: User
+    @ManyToOne(() => User, { nullable: false })
+    user: User
 }

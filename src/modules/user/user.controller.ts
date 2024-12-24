@@ -12,9 +12,9 @@ export class UserController {
         return this.userService.findAll()
     }
 
-    @Get('/:id')
+    @Get(':id')
     findUser(@Param('id') id: string) {
-        const user = this.userService.findOne(id)
+        const user = this.userService.findOneById(id)
 
         if (!user) {
             throw new NotFoundException()
@@ -23,13 +23,13 @@ export class UserController {
         return user
     }
 
-    @Delete('/:id')
+    @Delete(':id')
     removeUser(@Param('id') id: string) {
         return this.userService.remove(id)
     }
 
-    @Patch('/:id')
-    updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-        return this.userService.update(id, body)
+    @Patch(':id')
+    updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
+        return this.userService.update(id, data)
     }
 }

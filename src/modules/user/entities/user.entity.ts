@@ -1,7 +1,5 @@
 import { Exclude } from 'class-transformer'
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
-
-import { Wallet } from '@modules/wallet/entities/wallet.entity'
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity()
 export class User {
@@ -10,9 +8,6 @@ export class User {
 
     @Column()
     name: string
-
-    @OneToMany(() => Wallet, (wallet) => wallet.owner)
-    wallets: Wallet[]
 
     @Column({ unique: true })
     email: string

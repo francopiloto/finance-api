@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
+import { User } from '@modules/user/entities/user.entity'
+
 import { CreateWalletDto } from './dtos/create-wallet.dto'
 import { UpdateWalletDto } from './dtos/update-wallet.dto'
 import { Wallet } from './entities/wallet.entity'
@@ -10,33 +12,37 @@ import { Wallet } from './entities/wallet.entity'
 export class WalletService {
     constructor(@InjectRepository(Wallet) private walletRepository: Repository<Wallet>) {}
 
-    create(data: CreateWalletDto, userId: string) {
-        const wallet = this.walletRepository.create({ ...data, owner: { id: userId } })
+    create(user: User, data: CreateWalletDto) {
+        const wallet = this.walletRepository.create({ ...data, user })
         return this.walletRepository.save(wallet)
     }
 
-    findAll(userId: string) {
-        return this.walletRepository.findBy({ owner: { id: userId } })
-    }
+    async update(id: string, user: User, data: UpdateWalletDto) {
+        if (id && user) {
+            const wallet = await this.walletRepository.findOneBy({ id, user })
 
-    async update(id: string, data: UpdateWalletDto) {
-        const wallet = await this.walletRepository.findOneBy({ id })
-
-        if (!wallet) {
-            throw new NotFoundException()
+            if (wallet) {
+                Object.assign(wallet, data)
+                return this.walletRepository.save(wallet)
+            }
         }
 
-        Object.assign(wallet, data)
-        return this.walletRepository.save(wallet)
+        throw new NotFoundException()
     }
 
-    async remove(id: string) {
-        const wallet = await this.walletRepository.findOneBy({ id })
+    async remove(id: string, user: User) {
+        if (id && user) {
+            const wallet = await this.walletRepository.findOneBy({ id, user })
 
-        if (!wallet) {
-            throw new NotFoundException()
+            if (wallet) {
+                return this.walletRepository.remove(wallet)
+            }
         }
 
-        this.walletRepository.remove(wallet)
+        throw new NotFoundException()
+    }
+
+    async findWallets(user: User): Promise<Wallet[]> {
+        return user ? this.walletRepository.findBy({ user }) : []
     }
 }

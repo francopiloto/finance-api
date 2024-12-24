@@ -6,10 +6,13 @@ import { Strategy } from 'passport-jwt'
 
 import { UserService } from '@modules/user/user.service'
 
+import { AuthService } from '../auth.service'
+
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     constructor(
         private readonly userService: UserService,
+        private readonly authService: AuthService,
         configService: ConfigService
     ) {
         super({
@@ -19,13 +22,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         })
     }
 
-    async validate(payload: { sub: string }) {
-        const user = await this.userService.findOneById(payload.sub)
+    async validate(payload: { sub: string; aud: string; iss: string }) {
+        const [user, token] = await Promise.all([
+            this.userService.findOneById(payload.sub),
+            this.authService.findRefreshToken(payload.iss),
+        ])
 
-        if (!user) {
-            throw new UnauthorizedException()
+        if (user && token && payload.aud) {
+            return [user, { appId: payload.aud }]
         }
 
-        return user
+        throw new UnauthorizedException()
     }
 }

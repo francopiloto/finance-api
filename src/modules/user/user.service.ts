@@ -19,16 +19,16 @@ export class UserService {
         return this.userRepository.find()
     }
 
-    findOne(id: string) {
-        return this.userRepository.findOneBy({ id })
+    async findOneById(id: string) {
+        return id ? this.userRepository.findOneBy({ id }) : null
     }
 
-    findOneByEmail(email: string) {
-        return this.userRepository.findOneBy({ email })
+    async findOneByEmail(email: string) {
+        return email ? this.userRepository.findOneBy({ email }) : null
     }
 
     async update(id: string, data: UpdateUserDto) {
-        const user = await this.findOne(id)
+        const user = await this.findOneById(id)
 
         if (!user) {
             throw new NotFoundException()
@@ -39,12 +39,12 @@ export class UserService {
     }
 
     async remove(id: string) {
-        const user = await this.findOne(id)
+        const user = await this.findOneById(id)
 
         if (!user) {
             throw new NotFoundException()
         }
 
-        this.userRepository.remove(user)
+        return this.userRepository.remove(user)
     }
 }

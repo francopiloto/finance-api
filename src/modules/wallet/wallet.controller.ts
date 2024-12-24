@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
-import { ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiNotFoundResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
 
-import { Credentials } from '@modules/auth/decorators/credentials.decorator'
+import { CurrentUser } from '@modules/auth/decorators/user.decorator'
+import { User } from '@modules/user/entities/user.entity'
 
 import { CreateWalletDto } from './dtos/create-wallet.dto'
 import { UpdateWalletDto } from './dtos/update-wallet.dto'
@@ -14,26 +15,31 @@ export class WalletController {
     @Post()
     @ApiUnauthorizedResponse()
     @ApiBearerAuth()
-    createWallet(@Body() data: CreateWalletDto, @Credentials('id') userId: string) {
-        return this.walletService.create(data, userId)
-    }
-
-    @Get()
-    @ApiUnauthorizedResponse()
-    @ApiBearerAuth()
-    listWallets(@Credentials('id') userId: string) {
-        return this.walletService.findAll(userId)
+    createWallet(@CurrentUser() user: User, @Body() data: CreateWalletDto) {
+        return this.walletService.create(user, data)
     }
 
     @Patch(':id')
     @ApiUnauthorizedResponse()
+    @ApiNotFoundResponse()
     @ApiBearerAuth()
-    updateWallet(@Param('id') id: string, @Body() body: UpdateWalletDto) {
-        return this.walletService.update(id, body)
+    updateWallet(@Param('id') id: string, @CurrentUser() user: User, @Body() data: UpdateWalletDto) {
+        return this.walletService.update(id, user, data)
     }
 
-    @Delete('/:id')
-    removeWallet(@Param('id') id: string) {
-        return this.walletService.remove(id)
+    @Delete(':id')
+    @ApiUnauthorizedResponse()
+    @ApiNotFoundResponse()
+    @ApiBearerAuth()
+    removeWallet(@Param('id') id: string, @CurrentUser() user: User) {
+        return this.walletService.remove(id, user)
+    }
+
+    @Get()
+    @ApiUnauthorizedResponse()
+    @ApiNotFoundResponse()
+    @ApiBearerAuth()
+    listWallets(@CurrentUser() user: User) {
+        return this.walletService.findWallets(user)
     }
 }
