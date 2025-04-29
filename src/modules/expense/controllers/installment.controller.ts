@@ -8,12 +8,15 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
+import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
 import { CurrentUser } from '@modules/auth/decorators/user.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateInstallmentDto } from '../dtos/create-installment.dto';
 import { UpdateInstallmentStatusDto } from '../dtos/update-installment-status.dto';
 import { UpdateInstallmentDto } from '../dtos/update-installment.dto';
+import { Expense } from '../entities/expense.entity';
+import { Installment } from '../entities/installment.entity';
 import { InstallmentService } from '../services/installment.service';
 
 @Controller('installment')
@@ -22,6 +25,7 @@ export class InstallmentController {
   constructor(private readonly service: InstallmentService) {}
 
   @Post(':expenseId')
+  @OwnerEntity(Expense, 'expenseId')
   @ApiOperation({ summary: 'Add a new installment to an expense' })
   @ApiCreatedResponse({ description: 'Installment created successfully.' })
   @ApiNotFoundResponse({ description: 'Expense or payment method not found.' })
@@ -34,6 +38,7 @@ export class InstallmentController {
   }
 
   @Patch(':id')
+  @OwnerEntity(Installment)
   @ApiOperation({ summary: 'Update an installment' })
   @ApiOkResponse({ description: 'Installment updated successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
@@ -47,6 +52,7 @@ export class InstallmentController {
   }
 
   @Patch(':id/status')
+  @OwnerEntity(Installment)
   @ApiOperation({ summary: 'Update only the status of an installment' })
   @ApiOkResponse({ description: 'Installment status updated successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
@@ -60,6 +66,7 @@ export class InstallmentController {
   }
 
   @Delete(':id')
+  @OwnerEntity(Installment)
   @ApiOperation({ summary: 'Delete a pending installment' })
   @ApiOkResponse({ description: 'Installment removed successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
