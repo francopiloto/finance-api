@@ -48,6 +48,7 @@ export class ExpenseService {
   ) {
     return await this.dataSource.transaction(async (manager) => {
       const group = await this.findGroup(user, groupId, manager);
+
       const paymentMethod = await manager.findOne(PaymentMethod, {
         where: { user, id: paymentMethodId },
       });

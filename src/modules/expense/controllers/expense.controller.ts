@@ -8,11 +8,13 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
+import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
 import { CurrentUser } from '@modules/auth/decorators/user.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateExpenseDto } from '../dtos/create-expense.dto';
 import { UpdateExpenseDto } from '../dtos/update-expense.dto';
+import { Expense } from '../entities/expense.entity';
 import { ExpenseService } from '../services/expense.service';
 
 @Controller('expense')
@@ -28,6 +30,7 @@ export class ExpenseController {
   }
 
   @Patch(':id')
+  @OwnerEntity(Expense)
   @ApiOperation({ summary: 'Update an expense header' })
   @ApiOkResponse({ description: 'Expense updated successfully.' })
   @ApiNotFoundResponse({ description: 'Expense not found.' })
@@ -36,13 +39,14 @@ export class ExpenseController {
   }
 
   @Delete(':id')
+  @OwnerEntity(Expense)
   @ApiOperation({ summary: 'Delete an expense if all installments are still pending' })
   @ApiOkResponse({ description: 'Expense deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Expense not found.' })
   @ApiConflictResponse({
     description: 'Cannot delete expense with associated non pending installments.',
   })
-  remove(@Param('id') id: string, @CurrentUser() user: User) {
+  remove(@CurrentUser() user: User, @Param('id') id: string) {
     return this.service.remove(user, id);
   }
 }
