@@ -1,18 +1,30 @@
-import { ApiHideProperty } from '@nestjs/swagger'
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { ApiHideProperty } from '@nestjs/swagger';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    name: string
+  @Column({ length: 255 })
+  name: string;
 
-    @Column({ unique: true })
-    email: string
+  @Column({ unique: true, length: 255 })
+  email: string;
 
-    @Column({ select: false })
-    @ApiHideProperty()
-    password: string
+  @Column({ select: false })
+  @ApiHideProperty()
+  password: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

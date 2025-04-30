@@ -1,40 +1,36 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { UpdateUserDto } from './dtos/update-user.dto'
-import { User } from './entities/user.entity'
+import { UpdateUserDto } from './dtos/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
+  constructor(@InjectRepository(User) private readonly userRepo: Repository<User>) {}
 
-    findAll() {
-        return this.userRepository.find()
+  findAll() {
+    return this.userRepo.find();
+  }
+
+  async findOneById(id: string) {
+    return id ? this.userRepo.findOneBy({ id }) : null;
+  }
+
+  async findOneByIdOrFail(id: string) {
+    const user = await this.findOneById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    async findOneById(id: string) {
-        return id ? this.userRepository.findOneBy({ id }) : null
-    }
+    return user;
+  }
 
-    async update(id: string, data: UpdateUserDto) {
-        const user = await this.findOneById(id)
+  async update(id: string, data: UpdateUserDto) {
+    const user = await this.findOneByIdOrFail(id);
 
-        if (!user) {
-            throw new NotFoundException()
-        }
-
-        Object.assign(user, data)
-        return this.userRepository.save(user)
-    }
-
-    async remove(id: string) {
-        const user = await this.findOneById(id)
-
-        if (!user) {
-            throw new NotFoundException()
-        }
-
-        return this.userRepository.remove(user)
-    }
+    Object.assign(user, data);
+    return this.userRepo.save(user);
+  }
 }
