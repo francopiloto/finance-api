@@ -46,6 +46,7 @@ export class PaymentMethodService {
 
   async remove(user: User, id: string): Promise<PaymentMethod> {
     const paymentMethod = await this.findById(user, id);
+
     const hasInstallments = await this.installmentRepo.findOne({
       where: { paymentMethod },
       select: ['id'],

@@ -9,11 +9,13 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
+import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
 import { CurrentUser } from '@modules/auth/decorators/user.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreatePaymentMethodDto } from '../dtos/create-payment-method.dto';
 import { UpdatePaymentMethodDto } from '../dtos/update-payment-method.dto';
+import { PaymentMethod } from '../entities/payment-method.entity';
 import { PaymentMethodService } from '../services/payment-method.service';
 
 @Controller('payment-method')
@@ -37,6 +39,7 @@ export class PaymentMethodController {
   }
 
   @Patch(':id')
+  @OwnerEntity(PaymentMethod)
   @ApiOperation({ summary: 'Update a user-customized payment method' })
   @ApiOkResponse({ description: 'Payment method updated successfully.' })
   @ApiNotFoundResponse({ description: 'Payment method not found.' })
@@ -45,6 +48,7 @@ export class PaymentMethodController {
   }
 
   @Delete(':id')
+  @OwnerEntity(PaymentMethod)
   @ApiOperation({ summary: 'Delete a user-customized payment method that has not yet been used.' })
   @ApiOkResponse({ description: 'Payment method deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Payment method not found.' })
