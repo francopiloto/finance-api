@@ -1,8 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
+import { mockOwnerEntityProviders } from 'test/setup/owner-entity.providers';
 
-import { IsOwnerGuard } from '@modules/auth/guards/owner.guard';
 import { User } from '@modules/user/entities/user.entity';
 
 import { ExpenseGroupController } from './expense-group.controller';
@@ -29,8 +28,7 @@ describe('ExpenseGroupController', () => {
       controllers: [ExpenseGroupController],
       providers: [
         { provide: ExpenseGroupService, useFactory: mockExpenseGroupService },
-        { provide: IsOwnerGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
-        { provide: DataSource, useValue: {} },
+        ...mockOwnerEntityProviders,
       ],
     }).compile();
 
