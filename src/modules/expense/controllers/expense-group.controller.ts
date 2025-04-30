@@ -9,11 +9,13 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
+import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
 import { CurrentUser } from '@modules/auth/decorators/user.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateExpenseGroupDto } from '../dtos/create-expense-group.dto';
 import { UpdateExpenseGroupDto } from '../dtos/update-expense-group.dto';
+import { ExpenseGroup } from '../entities/expense-group.entity';
 import { ExpenseGroupService } from '../services/expense-group.service';
 
 @Controller('expense-group')
@@ -37,6 +39,7 @@ export class ExpenseGroupController {
   }
 
   @Patch(':id')
+  @OwnerEntity(ExpenseGroup)
   @ApiOperation({ summary: 'Update a user-customized expense group' })
   @ApiOkResponse({ description: 'Expense group updated successfully.' })
   @ApiNotFoundResponse({ description: 'Expense group not found.' })
@@ -45,6 +48,7 @@ export class ExpenseGroupController {
   }
 
   @Delete(':id')
+  @OwnerEntity(ExpenseGroup)
   @ApiOperation({ summary: 'Delete a user-customized expense group' })
   @ApiOkResponse({ description: 'Expense group deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Expense group not found.' })
