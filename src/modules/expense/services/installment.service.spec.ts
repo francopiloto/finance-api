@@ -46,235 +46,244 @@ describe('InstallmentService', () => {
     installmentRepo = module.get(getRepositoryToken(Installment));
   });
 
-  it('should create an installment successfully', async () => {
-    const user = { id: 'user-id' } as User;
-    const expense = { id: 'expense-id', user } as Expense;
-    const paymentMethod = { id: 'payment-id', user } as PaymentMethod;
+  describe('create', () => {
+    it('should create an installment successfully', async () => {
+      const user = { id: 'user-id' } as User;
+      const expense = { id: 'expense-id', user } as Expense;
+      const paymentMethod = { id: 'payment-id', user } as PaymentMethod;
 
-    expenseRepo.findOne.mockResolvedValue(expense);
-    paymentRepo.findOne.mockResolvedValue(paymentMethod);
+      expenseRepo.findOne.mockResolvedValue(expense);
+      paymentRepo.findOne.mockResolvedValue(paymentMethod);
 
-    const dto: CreateInstallmentDto = {
-      value: 100.0,
-      billingMonth: new Date('2024-04-01'),
-      paymentMethodId: paymentMethod.id,
-    };
+      const dto: CreateInstallmentDto = {
+        value: 100.0,
+        billingMonth: new Date('2024-04-01'),
+        paymentMethodId: paymentMethod.id,
+      };
 
-    const installment = {
-      id: 'installment-id',
-      expense,
-      paymentMethod,
-      value: dto.value,
-    } as Installment;
+      const installment = {
+        id: 'installment-id',
+        expense,
+        paymentMethod,
+        value: dto.value,
+      } as Installment;
 
-    installmentRepo.create.mockReturnValue(installment);
-    installmentRepo.save.mockResolvedValue(installment);
+      installmentRepo.create.mockReturnValue(installment);
+      installmentRepo.save.mockResolvedValue(installment);
 
-    const result = await service.create(user, expense.id, dto);
+      const result = await service.create(user, expense.id, dto);
 
-    expect(expenseRepo.findOne).toHaveBeenCalledWith({ where: { id: expense.id, user } });
-    expect(paymentRepo.findOne).toHaveBeenCalledWith({ where: { id: paymentMethod.id, user } });
+      expect(expenseRepo.findOne).toHaveBeenCalledWith({ where: { id: expense.id, user } });
+      expect(paymentRepo.findOne).toHaveBeenCalledWith({ where: { id: paymentMethod.id, user } });
 
-    expect(installmentRepo.create).toHaveBeenCalledWith({
-      expense,
-      user,
-      status: InstallmentStatus.PENDING,
-      paymentMethod,
-      value: dto.value,
-      billingMonth: dto.billingMonth,
+      expect(installmentRepo.create).toHaveBeenCalledWith({
+        expense,
+        user,
+        status: InstallmentStatus.PENDING,
+        paymentMethod,
+        value: dto.value,
+        billingMonth: dto.billingMonth,
+      });
+
+      expect(installmentRepo.save).toHaveBeenCalledWith(installment);
+      expect(result).toEqual(installment);
     });
 
-    expect(installmentRepo.save).toHaveBeenCalledWith(installment);
-    expect(result).toEqual(installment);
+    it('should throw if expense not found on create', async () => {
+      const user = { id: 'user-id' } as User;
+      expenseRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.create(user, 'nonexistent-expense-id', {
+          value: 100,
+          billingMonth: new Date(),
+          paymentMethodId: 'pmid',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw if payment method not found on create', async () => {
+      const user = { id: 'user-id' } as User;
+      const expense = { id: 'eid', user } as Expense;
+
+      expenseRepo.findOne.mockResolvedValue(expense);
+      paymentRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.create(user, 'eid', {
+          value: 100,
+          billingMonth: new Date(),
+          paymentMethodId: 'missing',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
-  it('should throw if expense not found on create', async () => {
-    const user = { id: 'user-id' } as User;
-    expenseRepo.findOne.mockResolvedValue(null);
+  describe('update', () => {
+    it('should update an installment successfully', async () => {
+      const user = { id: 'user-id' } as User;
 
-    await expect(
-      service.create(user, 'nonexistent-expense-id', {
-        value: 100,
-        billingMonth: new Date(),
-        paymentMethodId: 'pmid',
-      }),
-    ).rejects.toThrow(NotFoundException);
-  });
+      const existingInstallment = {
+        id: 'installment-id',
+        user,
+        status: InstallmentStatus.PENDING,
+        paymentMethod: { id: 'old-method' },
+      } as Installment;
 
-  it('should throw if payment method not found on create', async () => {
-    const user = { id: 'user-id' } as User;
-    const expense = { id: 'eid', user } as Expense;
-
-    expenseRepo.findOne.mockResolvedValue(expense);
-    paymentRepo.findOne.mockResolvedValue(null);
-
-    await expect(
-      service.create(user, 'eid', {
-        value: 100,
-        billingMonth: new Date(),
-        paymentMethodId: 'missing',
-      }),
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should update an installment successfully', async () => {
-    const user = { id: 'user-id' } as User;
-
-    const existingInstallment = {
-      id: 'installment-id',
-      user,
-      status: InstallmentStatus.PENDING,
-      paymentMethod: { id: 'old-method' },
-    } as Installment;
-
-    const dto: UpdateInstallmentDto = {
-      value: 200,
-      billingMonth: new Date('2024-05-01'),
-    };
-
-    installmentRepo.findOne.mockResolvedValue(existingInstallment);
-    installmentRepo.save.mockResolvedValue({ ...existingInstallment, ...dto });
-
-    const result = await service.update(user, existingInstallment.id, dto);
-
-    expect(result.value).toBe(200);
-    expect(result.billingMonth).toEqual(new Date('2024-05-01'));
-  });
-
-  it('should throw if installment not found on update', async () => {
-    installmentRepo.findOne.mockResolvedValue(null);
-
-    await expect(
-      service.update({ id: 'uid' } as User, 'iid', {
-        value: 100,
-        billingMonth: new Date(),
-      }),
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should throw if trying to update a paid installment', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      user: { id: 'uid' },
-      status: InstallmentStatus.PAID,
-    } as Installment);
-
-    await expect(
-      service.update({ id: 'uid' } as User, 'iid', {
+      const dto: UpdateInstallmentDto = {
         value: 200,
-        billingMonth: new Date(),
-      }),
-    ).rejects.toThrow(ConflictException);
+        billingMonth: new Date('2024-05-01'),
+      };
+
+      installmentRepo.findOne.mockResolvedValue(existingInstallment);
+      installmentRepo.save.mockResolvedValue({ ...existingInstallment, ...dto });
+
+      const result = await service.update(user, existingInstallment.id, dto);
+
+      expect(result.value).toBe(200);
+      expect(result.billingMonth).toEqual(new Date('2024-05-01'));
+    });
+
+    it('should throw if installment not found on update', async () => {
+      installmentRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.update({ id: 'uid' } as User, 'iid', {
+          value: 100,
+          billingMonth: new Date(),
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw if trying to update a paid installment', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        user: { id: 'uid' },
+        status: InstallmentStatus.PAID,
+      } as Installment);
+
+      await expect(
+        service.update({ id: 'uid' } as User, 'iid', {
+          value: 200,
+          billingMonth: new Date(),
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw if trying to update a scheduled installment', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        user: { id: 'uid' },
+        status: InstallmentStatus.SCHEDULED,
+      } as Installment);
+
+      await expect(
+        service.update({ id: 'uid' } as User, 'iid', {
+          value: 200,
+          billingMonth: new Date(),
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw if payment method not found on update', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        user: { id: 'uid' },
+        status: InstallmentStatus.PENDING,
+        paymentMethod: { id: 'pmi' },
+      } as Installment);
+
+      paymentRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.update({ id: 'uid' } as User, 'iid', {
+          paymentMethodId: 'nonexistent-payment-method-id',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
-  it('should throw if trying to update a scheduled installment', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      user: { id: 'uid' },
-      status: InstallmentStatus.SCHEDULED,
-    } as Installment);
+  describe('remove', () => {
+    it('should remove an installment successfully', async () => {
+      const user = { id: 'user-id' } as User;
 
-    await expect(
-      service.update({ id: 'uid' } as User, 'iid', {
-        value: 200,
-        billingMonth: new Date(),
-      }),
-    ).rejects.toThrow(ConflictException);
+      const installment = {
+        id: 'installment-id',
+        user,
+        status: InstallmentStatus.PENDING,
+      } as Installment;
+
+      installmentRepo.findOne.mockResolvedValue(installment);
+
+      await service.remove(user, installment.id);
+
+      expect(installmentRepo.remove).toHaveBeenCalledWith(installment);
+    });
+
+    it('should throw if installment not found on remove', async () => {
+      installmentRepo.findOne.mockResolvedValue(null);
+      await expect(service.remove({ id: 'uid' } as User, 'iid')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw if installment is not pending on remove', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        user: { id: 'uid' },
+        status: InstallmentStatus.PAID,
+      } as Installment);
+
+      await expect(service.remove({ id: 'uid' } as User, 'iid')).rejects.toThrow(ConflictException);
+    });
   });
 
-  it('should throw if payment method not found on update', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      user: { id: 'uid' },
-      status: InstallmentStatus.PENDING,
-      paymentMethod: { id: 'pmi' },
-    } as Installment);
+  describe('updateStatus', () => {
+    it('should update installment status successfully', async () => {
+      const user = { id: 'user-id' } as User;
 
-    paymentRepo.findOne.mockResolvedValue(null);
+      const installment = {
+        id: 'installment-id',
+        user,
+        status: InstallmentStatus.PENDING,
+      } as Installment;
 
-    await expect(
-      service.update({ id: 'uid' } as User, 'iid', {
-        paymentMethodId: 'nonexistent-payment-method-id',
-      }),
-    ).rejects.toThrow(NotFoundException);
-  });
+      const dto: UpdateInstallmentStatusDto = { status: InstallmentStatus.SCHEDULED };
 
-  it('should remove an installment successfully', async () => {
-    const user = { id: 'user-id' } as User;
-    const installment = {
-      id: 'installment-id',
-      user,
-      status: InstallmentStatus.PENDING,
-    } as Installment;
+      installmentRepo.findOne.mockResolvedValue(installment);
+      installmentRepo.save.mockResolvedValue({ ...installment, status: dto.status });
 
-    installmentRepo.findOne.mockResolvedValue(installment);
+      const result = await service.updateStatus(user, installment.id, dto);
 
-    await service.remove(user, installment.id);
+      expect(result.status).toBe(InstallmentStatus.SCHEDULED);
+    });
 
-    expect(installmentRepo.remove).toHaveBeenCalledWith(installment);
-  });
+    it('should throw if installment not found on update status', async () => {
+      installmentRepo.findOne.mockResolvedValue(null);
 
-  it('should throw if installment not found on remove', async () => {
-    installmentRepo.findOne.mockResolvedValue(null);
-    await expect(service.remove({ id: 'uid' } as User, 'iid')).rejects.toThrow(NotFoundException);
-  });
+      await expect(
+        service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PAID }),
+      ).rejects.toThrow(NotFoundException);
+    });
 
-  it('should throw if installment is not pending on remove', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      user: { id: 'uid' },
-      status: InstallmentStatus.PAID,
-    } as Installment);
+    it('should throw if trying to update the status of a paid installment', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        status: InstallmentStatus.PAID,
+      } as Installment);
 
-    await expect(service.remove({ id: 'uid' } as User, 'iid')).rejects.toThrow(ConflictException);
-  });
+      await expect(
+        service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PENDING }),
+      ).rejects.toThrow(ConflictException);
+    });
 
-  it('should update installment status successfully', async () => {
-    const user = { id: 'user-id' } as User;
+    it('should throw if trying to move from scheduled to pending', async () => {
+      installmentRepo.findOne.mockResolvedValue({
+        id: 'iid',
+        status: InstallmentStatus.SCHEDULED,
+      } as Installment);
 
-    const installment = {
-      id: 'installment-id',
-      user,
-      status: InstallmentStatus.PENDING,
-    } as Installment;
-
-    const dto: UpdateInstallmentStatusDto = { status: InstallmentStatus.SCHEDULED };
-
-    installmentRepo.findOne.mockResolvedValue(installment);
-    installmentRepo.save.mockResolvedValue({ ...installment, status: dto.status });
-
-    const result = await service.updateStatus(user, installment.id, dto);
-
-    expect(result.status).toBe(InstallmentStatus.SCHEDULED);
-  });
-
-  it('should throw if installment not found on update status', async () => {
-    installmentRepo.findOne.mockResolvedValue(null);
-
-    await expect(
-      service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PAID }),
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should throw if trying to update the status of a paid installment', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      status: InstallmentStatus.PAID,
-    } as Installment);
-
-    await expect(
-      service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PENDING }),
-    ).rejects.toThrow(ConflictException);
-  });
-
-  it('should throw if trying to move from scheduled to pending', async () => {
-    installmentRepo.findOne.mockResolvedValue({
-      id: 'iid',
-      status: InstallmentStatus.SCHEDULED,
-    } as Installment);
-
-    await expect(
-      service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PENDING }),
-    ).rejects.toThrow(ConflictException);
+      await expect(
+        service.updateStatus({ id: 'uid' } as User, 'iid', { status: InstallmentStatus.PENDING }),
+      ).rejects.toThrow(ConflictException);
+    });
   });
 });

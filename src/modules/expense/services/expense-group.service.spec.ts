@@ -40,79 +40,87 @@ describe('ExpenseGroupService', () => {
     expenseRepo = module.get(getRepositoryToken(Expense));
   });
 
-  it('should return all groups for the user', async () => {
-    const mockQB = {
-      where: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([{ id: '1' }, { id: '2' }]),
-    } as unknown as SelectQueryBuilder<ExpenseGroup>;
+  describe('findAll', () => {
+    it('should return all groups for the user', async () => {
+      const mockQB = {
+        where: jest.fn().mockReturnThis(),
+        orWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([{ id: '1' }, { id: '2' }]),
+      } as unknown as SelectQueryBuilder<ExpenseGroup>;
 
-    groupRepo.createQueryBuilder.mockReturnValue(mockQB);
+      groupRepo.createQueryBuilder.mockReturnValue(mockQB);
 
-    const result = await service.findAll(user);
+      const result = await service.findAll(user);
 
-    expect(result).toEqual([{ id: '1' }, { id: '2' }]);
-    expect(mockQB.where).toHaveBeenCalledWith('group.created_by = :userId', { userId: user.id });
-    expect(mockQB.orWhere).toHaveBeenCalledWith('group.created_by IS NULL');
-    expect(mockQB.orderBy).toHaveBeenCalledWith('group.name', 'ASC');
+      expect(result).toEqual([{ id: '1' }, { id: '2' }]);
+      expect(mockQB.where).toHaveBeenCalledWith('group.created_by = :userId', { userId: user.id });
+      expect(mockQB.orWhere).toHaveBeenCalledWith('group.created_by IS NULL');
+      expect(mockQB.orderBy).toHaveBeenCalledWith('group.name', 'ASC');
+    });
   });
 
-  it('should create a new group for the user', async () => {
-    const dto = { name: 'Test Group' };
-    const group = { id: 'gid', name: dto.name, createdBy: user } as ExpenseGroup;
+  describe('create', () => {
+    it('should create a new group for the user', async () => {
+      const dto = { name: 'Test Group' };
+      const group = { id: 'gid', name: dto.name, createdBy: user } as ExpenseGroup;
 
-    groupRepo.create.mockReturnValue(group);
-    groupRepo.save.mockResolvedValue(group);
+      groupRepo.create.mockReturnValue(group);
+      groupRepo.save.mockResolvedValue(group);
 
-    const result = await service.create(user, dto);
+      const result = await service.create(user, dto);
 
-    expect(result).toEqual(group);
-    expect(groupRepo.create).toHaveBeenCalledWith({ ...dto, createdBy: user });
-    expect(groupRepo.save).toHaveBeenCalledWith(group);
+      expect(result).toEqual(group);
+      expect(groupRepo.create).toHaveBeenCalledWith({ ...dto, createdBy: user });
+      expect(groupRepo.save).toHaveBeenCalledWith(group);
+    });
   });
 
-  it('should update an existing group for the user', async () => {
-    const id = 'gid';
-    const dto = { name: 'Updated Name' };
-    const group = { id, name: 'Old Name', createdBy: user } as ExpenseGroup;
+  describe('update', () => {
+    it('should update an existing group for the user', async () => {
+      const id = 'gid';
+      const dto = { name: 'Updated Name' };
+      const group = { id, name: 'Old Name', createdBy: user } as ExpenseGroup;
 
-    groupRepo.findOne.mockResolvedValue(group);
-    groupRepo.save.mockResolvedValue({ ...group, ...dto });
+      groupRepo.findOne.mockResolvedValue(group);
+      groupRepo.save.mockResolvedValue({ ...group, ...dto });
 
-    const result = await service.update(user, id, dto);
-    expect(result).toEqual({ ...group, ...dto });
+      const result = await service.update(user, id, dto);
+      expect(result).toEqual({ ...group, ...dto });
+    });
+
+    it('should throw if group not found on update', async () => {
+      groupRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.update(user, 'not-found', { name: 'New Name' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
-  it('should throw if group not found on update', async () => {
-    groupRepo.findOne.mockResolvedValue(null);
+  describe('remove', () => {
+    it('should remove a group if no dependencies exist', async () => {
+      const group = { id: 'gid', name: 'Test', createdBy: user } as ExpenseGroup;
 
-    await expect(service.update(user, 'not-found', { name: 'New Name' })).rejects.toThrow(
-      NotFoundException,
-    );
-  });
+      groupRepo.findOne.mockResolvedValue(group);
+      expenseRepo.findOne.mockResolvedValue(null);
+      groupRepo.remove.mockResolvedValue(group);
 
-  it('should remove a group if no dependencies exist', async () => {
-    const group = { id: 'gid', name: 'Test', createdBy: user } as ExpenseGroup;
+      const result = await service.remove(user, group.id);
+      expect(result).toEqual(group);
+    });
 
-    groupRepo.findOne.mockResolvedValue(group);
-    expenseRepo.findOne.mockResolvedValue(null);
-    groupRepo.remove.mockResolvedValue(group);
+    it('should throw if group not found on remove', async () => {
+      groupRepo.findOne.mockResolvedValue(null);
+      await expect(service.remove(user, 'not-found')).rejects.toThrow(NotFoundException);
+    });
 
-    const result = await service.remove(user, group.id);
-    expect(result).toEqual(group);
-  });
+    it('should throw if group has dependent expenses', async () => {
+      const group = { id: 'gid', name: 'Test', createdBy: user } as ExpenseGroup;
+      groupRepo.findOne.mockResolvedValue(group);
+      expenseRepo.findOne.mockResolvedValue({ id: 'eid' } as Expense);
 
-  it('should throw if group not found on remove', async () => {
-    groupRepo.findOne.mockResolvedValue(null);
-    await expect(service.remove(user, 'not-found')).rejects.toThrow(NotFoundException);
-  });
-
-  it('should throw if group has dependent expenses', async () => {
-    const group = { id: 'gid', name: 'Test', createdBy: user } as ExpenseGroup;
-    groupRepo.findOne.mockResolvedValue(group);
-    expenseRepo.findOne.mockResolvedValue({ id: 'eid' } as Expense);
-
-    await expect(service.remove(user, group.id)).rejects.toThrow(ConflictException);
+      await expect(service.remove(user, group.id)).rejects.toThrow(ConflictException);
+    });
   });
 });

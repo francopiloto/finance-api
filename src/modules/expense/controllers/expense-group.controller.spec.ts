@@ -36,52 +36,60 @@ describe('ExpenseGroupController', () => {
     service = module.get(ExpenseGroupService);
   });
 
-  it('should return all groups for the user', async () => {
-    const groups = [{ id: '1' }, { id: '2' }] as ExpenseGroup[];
-    service.findAll.mockResolvedValue(groups);
+  describe('findAll', () => {
+    it('should return all groups for the user', async () => {
+      const groups = [{ id: '1' }, { id: '2' }] as ExpenseGroup[];
+      service.findAll.mockResolvedValue(groups);
 
-    const result = await controller.findAll(user);
+      const result = await controller.findAll(user);
 
-    expect(result).toEqual(groups);
-    expect(service.findAll).toHaveBeenCalledWith(user);
+      expect(result).toEqual(groups);
+      expect(service.findAll).toHaveBeenCalledWith(user);
+    });
   });
 
-  it('should create a new expense group', async () => {
-    const dto: CreateExpenseGroupDto = { name: 'Group A' };
-    const result = { id: '1', createdBy: user, ...dto };
+  describe('create', () => {
+    it('should create a new expense group', async () => {
+      const dto: CreateExpenseGroupDto = { name: 'Group A' };
+      const result = { id: '1', createdBy: user, ...dto };
 
-    service.create.mockResolvedValue(result);
+      service.create.mockResolvedValue(result);
 
-    expect(await controller.create(user, dto)).toEqual(result);
-    expect(service.create).toHaveBeenCalledWith(user, dto);
+      expect(await controller.create(user, dto)).toEqual(result);
+      expect(service.create).toHaveBeenCalledWith(user, dto);
+    });
   });
 
-  it('should update an expense group', async () => {
-    const id = 'gid';
-    const dto: UpdateExpenseGroupDto = { name: 'Updated Name' };
-    const updated = { id, name: dto.name } as ExpenseGroup;
+  describe('update', () => {
+    it('should update an expense group', async () => {
+      const id = 'gid';
+      const dto: UpdateExpenseGroupDto = { name: 'Updated Name' };
+      const updated = { id, name: dto.name } as ExpenseGroup;
 
-    service.update.mockResolvedValue(updated);
+      service.update.mockResolvedValue(updated);
 
-    expect(await controller.update(user, id, dto)).toEqual(updated);
-    expect(service.update).toHaveBeenCalledWith(user, id, dto);
+      expect(await controller.update(user, id, dto)).toEqual(updated);
+      expect(service.update).toHaveBeenCalledWith(user, id, dto);
+    });
+
+    it('should throw if update fails', async () => {
+      service.update.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.update(user, 'invalid-id', { name: 'test' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
-  it('should remove an expense group', async () => {
-    const id = 'gid';
-    const result = { id } as ExpenseGroup;
+  describe('remove', () => {
+    it('should remove an expense group', async () => {
+      const id = 'gid';
+      const result = { id } as ExpenseGroup;
 
-    service.remove.mockResolvedValue(result);
+      service.remove.mockResolvedValue(result);
 
-    expect(await controller.remove(user, id)).toEqual(result);
-    expect(service.remove).toHaveBeenCalledWith(user, id);
-  });
-
-  it('should throw if update fails', async () => {
-    service.update.mockRejectedValue(new NotFoundException());
-
-    await expect(controller.update(user, 'invalid-id', { name: 'test' })).rejects.toThrow(
-      NotFoundException,
-    );
+      expect(await controller.remove(user, id)).toEqual(result);
+      expect(service.remove).toHaveBeenCalledWith(user, id);
+    });
   });
 });

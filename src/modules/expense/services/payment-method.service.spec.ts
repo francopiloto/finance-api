@@ -40,73 +40,81 @@ describe('PaymentMethodService', () => {
     installmentRepo = module.get(getRepositoryToken(Installment));
   });
 
-  it('should return all payment methods for the user', async () => {
-    const methods = [{ id: '1' }, { id: '2' }];
-    paymentRepo.find.mockResolvedValue(methods as PaymentMethod[]);
+  describe('findAll', () => {
+    it('should return all payment methods for the user', async () => {
+      const methods = [{ id: '1' }, { id: '2' }];
+      paymentRepo.find.mockResolvedValue(methods as PaymentMethod[]);
 
-    const result = await service.findAll(user);
+      const result = await service.findAll(user);
 
-    expect(result).toEqual(methods);
-    expect(paymentRepo.find).toHaveBeenCalledWith({ where: { user }, order: { name: 'ASC' } });
+      expect(result).toEqual(methods);
+      expect(paymentRepo.find).toHaveBeenCalledWith({ where: { user }, order: { name: 'ASC' } });
+    });
   });
 
-  it('should create a payment method for the user', async () => {
-    const dto = { name: 'Credit Card', statementClosingDay: 10, dueDay: 20 };
-    const method = { id: 'pmid', ...dto, user } as PaymentMethod;
+  describe('create', () => {
+    it('should create a payment method for the user', async () => {
+      const dto = { name: 'Credit Card', statementClosingDay: 10, dueDay: 20 };
+      const method = { id: 'pmid', ...dto, user } as PaymentMethod;
 
-    paymentRepo.create.mockReturnValue(method);
-    paymentRepo.save.mockResolvedValue(method);
+      paymentRepo.create.mockReturnValue(method);
+      paymentRepo.save.mockResolvedValue(method);
 
-    const result = await service.create(user, dto);
+      const result = await service.create(user, dto);
 
-    expect(result).toEqual(method);
-    expect(paymentRepo.create).toHaveBeenCalledWith({ ...dto, user });
-    expect(paymentRepo.save).toHaveBeenCalledWith(method);
+      expect(result).toEqual(method);
+      expect(paymentRepo.create).toHaveBeenCalledWith({ ...dto, user });
+      expect(paymentRepo.save).toHaveBeenCalledWith(method);
+    });
   });
 
-  it('should update a payment method', async () => {
-    const id = 'pmid';
-    const dto = { name: 'Updated Name' };
-    const existing = { id, name: 'Old Name', user } as PaymentMethod;
+  describe('update', () => {
+    it('should update a payment method', async () => {
+      const id = 'pmid';
+      const dto = { name: 'Updated Name' };
+      const existing = { id, name: 'Old Name', user } as PaymentMethod;
 
-    paymentRepo.findOne.mockResolvedValue(existing);
-    paymentRepo.save.mockResolvedValue({ ...existing, ...dto });
+      paymentRepo.findOne.mockResolvedValue(existing);
+      paymentRepo.save.mockResolvedValue({ ...existing, ...dto });
 
-    const result = await service.update(user, id, dto);
+      const result = await service.update(user, id, dto);
 
-    expect(result).toEqual({ ...existing, ...dto });
+      expect(result).toEqual({ ...existing, ...dto });
+    });
+
+    it('should throw if method not found on update', async () => {
+      paymentRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.update(user, 'invalid-id', { name: 'X' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
-  it('should throw if method not found on update', async () => {
-    paymentRepo.findOne.mockResolvedValue(null);
+  describe('remove', () => {
+    it('should remove a method if no dependencies exist', async () => {
+      const method = { id: 'pmid', name: 'Card', user } as PaymentMethod;
 
-    await expect(service.update(user, 'invalid-id', { name: 'X' })).rejects.toThrow(
-      NotFoundException,
-    );
-  });
+      installmentRepo.findOne.mockResolvedValue(null);
+      paymentRepo.findOne.mockResolvedValue(method);
+      paymentRepo.remove.mockResolvedValue(method);
 
-  it('should remove a method if no dependencies exist', async () => {
-    const method = { id: 'pmid', name: 'Card', user } as PaymentMethod;
+      const result = await service.remove(user, method.id);
+      expect(result).toEqual(method);
+    });
 
-    installmentRepo.findOne.mockResolvedValue(null);
-    paymentRepo.findOne.mockResolvedValue(method);
-    paymentRepo.remove.mockResolvedValue(method);
+    it('should throw if method not found on remove', async () => {
+      paymentRepo.findOne.mockResolvedValue(null);
+      await expect(service.remove(user, 'invalid')).rejects.toThrow(NotFoundException);
+    });
 
-    const result = await service.remove(user, method.id);
-    expect(result).toEqual(method);
-  });
+    it('should throw if method has dependent installments', async () => {
+      const method = { id: 'pmid', name: 'Card', user } as PaymentMethod;
 
-  it('should throw if method not found on remove', async () => {
-    paymentRepo.findOne.mockResolvedValue(null);
-    await expect(service.remove(user, 'invalid')).rejects.toThrow(NotFoundException);
-  });
+      paymentRepo.findOne.mockResolvedValue(method);
+      installmentRepo.findOne.mockResolvedValue({ id: 'iid' } as Installment);
 
-  it('should throw if method has dependent installments', async () => {
-    const method = { id: 'pmid', name: 'Card', user } as PaymentMethod;
-
-    paymentRepo.findOne.mockResolvedValue(method);
-    installmentRepo.findOne.mockResolvedValue({ id: 'iid' } as Installment);
-
-    await expect(service.remove(user, method.id)).rejects.toThrow(ConflictException);
+      await expect(service.remove(user, method.id)).rejects.toThrow(ConflictException);
+    });
   });
 });

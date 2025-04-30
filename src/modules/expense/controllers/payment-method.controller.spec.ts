@@ -36,59 +36,67 @@ describe('PaymentMethodController', () => {
     service = module.get(PaymentMethodService);
   });
 
-  it('should return all methods for user', async () => {
-    const methods = [{ id: '1' }, { id: '2' }] as PaymentMethod[];
-    service.findAll.mockResolvedValue(methods);
+  describe('findAll', () => {
+    it('should return all methods for user', async () => {
+      const methods = [{ id: '1' }, { id: '2' }] as PaymentMethod[];
+      service.findAll.mockResolvedValue(methods);
 
-    const result = await controller.findAll(user);
+      const result = await controller.findAll(user);
 
-    expect(result).toEqual(methods);
-    expect(service.findAll).toHaveBeenCalledWith(user);
+      expect(result).toEqual(methods);
+      expect(service.findAll).toHaveBeenCalledWith(user);
+    });
   });
 
-  it('should create a method', async () => {
-    const dto: CreatePaymentMethodDto = {
-      name: 'Credit Card',
-      statementClosingDay: 10,
-      dueDay: 20,
-    };
+  describe('create', () => {
+    it('should create a method', async () => {
+      const dto: CreatePaymentMethodDto = {
+        name: 'Credit Card',
+        statementClosingDay: 10,
+        dueDay: 20,
+      };
 
-    const created = { id: 'pmid', ...dto } as PaymentMethod;
+      const created = { id: 'pmid', ...dto } as PaymentMethod;
 
-    service.create.mockResolvedValue(created);
+      service.create.mockResolvedValue(created);
 
-    expect(await controller.create(user, dto)).toEqual(created);
-    expect(service.create).toHaveBeenCalledWith(user, dto);
+      expect(await controller.create(user, dto)).toEqual(created);
+      expect(service.create).toHaveBeenCalledWith(user, dto);
+    });
   });
 
-  it('should update a method', async () => {
-    const id = 'pmid';
-    const dto: UpdatePaymentMethodDto = { name: 'Updated' };
-    const updated = { id, ...dto } as PaymentMethod;
+  describe('update', () => {
+    it('should update a method', async () => {
+      const id = 'pmid';
+      const dto: UpdatePaymentMethodDto = { name: 'Updated' };
+      const updated = { id, ...dto } as PaymentMethod;
 
-    service.update.mockResolvedValue(updated);
+      service.update.mockResolvedValue(updated);
 
-    expect(await controller.update(user, id, dto)).toEqual(updated);
-    expect(service.update).toHaveBeenCalledWith(user, id, dto);
+      expect(await controller.update(user, id, dto)).toEqual(updated);
+      expect(service.update).toHaveBeenCalledWith(user, id, dto);
+    });
+
+    it('should throw if update fails', async () => {
+      service.update.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.update(user, 'invalid', { name: 'X' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
-  it('should remove a method', async () => {
-    const id = 'pmid';
-    const removed = { id } as PaymentMethod;
+  describe('remove', () => {
+    it('should remove a method', async () => {
+      const id = 'pmid';
+      const removed = { id } as PaymentMethod;
 
-    service.remove.mockResolvedValue(removed);
+      service.remove.mockResolvedValue(removed);
 
-    const result = await controller.remove(user, id);
+      const result = await controller.remove(user, id);
 
-    expect(result).toEqual(removed);
-    expect(service.remove).toHaveBeenCalledWith(user, id);
-  });
-
-  it('should throw if update fails', async () => {
-    service.update.mockRejectedValue(new NotFoundException());
-
-    await expect(controller.update(user, 'invalid', { name: 'X' })).rejects.toThrow(
-      NotFoundException,
-    );
+      expect(result).toEqual(removed);
+      expect(service.remove).toHaveBeenCalledWith(user, id);
+    });
   });
 });
