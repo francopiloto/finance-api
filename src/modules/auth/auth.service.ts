@@ -1,75 +1,57 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { JwtService } from '@nestjs/jwt'
-import { InjectRepository } from '@nestjs/typeorm'
-import * as bcrypt from 'bcrypt'
-import { Repository } from 'typeorm'
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 
-import { User } from '@modules/user/entities/user.entity'
+import { User } from '@modules/user/entities/user.entity';
+import { UserService } from '@modules/user/user.service';
 
-import { SignInUserDto } from './dtos/signin-user.dto'
-import { SignUpUserDto } from './dtos/signup-user.dto'
-import { Token } from './entities/token.entity'
+import { SignInUserDto } from './dtos/signin-user.dto';
+import { SignUpUserDto } from './dtos/signup-user.dto';
+import { AuthToken } from './entities/token.entity';
+import { TokenFactory } from './token/token.factory';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        @InjectRepository(Token)
-        private readonly tokenRepository: Repository<Token>,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        private readonly jwtService: JwtService,
-        private readonly configService: ConfigService
-    ) {}
+  constructor(
+    @InjectRepository(AuthToken)
+    private readonly tokenRepo: Repository<AuthToken>,
+    private readonly tokenFactory: TokenFactory,
+    private readonly userService: UserService,
+  ) {}
 
-    async signUp(data: SignUpUserDto) {
-        if (await this.userRepository.existsBy({ email: data.email })) {
-            throw new ConflictException('Email already in use')
-        }
+  async signup(data: SignUpUserDto): Promise<User> {
+    const existing = await this.userService.findOneByEmail(data.email);
 
-        const salt = await bcrypt.genSalt(10)
-        const password = await bcrypt.hash(data.password, salt)
-
-        const user = this.userRepository.create({ ...data, password })
-        return this.userRepository.save(user)
+    if (existing) {
+      throw new ConflictException('Email already in use');
     }
 
-    async signIn({ email, password, appId }: SignInUserDto) {
-        const user = await this.userRepository
-            .createQueryBuilder('user')
-            .select('user')
-            .addSelect('user.password')
-            .where('user.email = :email', { email })
-            .getOne()
+    const hash = await bcrypt.hash(data.password, 10);
+    return this.userService.create({ ...data, password: hash });
+  }
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            throw new BadRequestException('Invalid credentials')
-        }
+  async signin({ email, password, device }: SignInUserDto) {
+    const user = await this.userService.findOneByEmailWithPassword(email);
 
-        return this.createTokens(user, appId)
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    async createTokens(user: User, appId: string) {
-        if (!user || !appId) {
-            throw new BadRequestException()
-        }
+    return this.generateTokens(user, device);
+  }
 
-        await this.tokenRepository.delete({ user, appId })
+  async signout(userId: string, device: string): Promise<void> {
+    await this.tokenRepo.delete({ user: { id: userId }, device });
+  }
 
-        const token = await this.tokenRepository.save(this.tokenRepository.create({ user, appId }))
+  async generateTokens(user: User, device: string = 'default') {
+    const { accessToken, refreshToken, tokenRecord } = await this.tokenFactory.generateTokens(
+      user,
+      device,
+    );
 
-        const [access_token, refresh_token] = await Promise.all([
-            this.jwtService.signAsync({ sub: user.id }, { expiresIn: this.configService.get('jwt.expiresIn') }),
-            this.jwtService.signAsync(
-                { sub: user.id, aud: appId, iss: token.id },
-                { expiresIn: this.configService.get('jwt.refreshExpiresIn') }
-            ),
-        ])
-
-        return { access_token, refresh_token }
-    }
-
-    async findRefreshToken(id: string) {
-        return id ? this.tokenRepository.findOneBy({ id }) : null
-    }
+    await this.tokenRepo.upsert(tokenRecord, ['user', 'device']);
+    return { accessToken, refreshToken };
+  }
 }

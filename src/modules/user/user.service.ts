@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -13,8 +14,21 @@ export class UserService {
     return this.userRepo.find();
   }
 
-  async findOneById(id: string) {
-    return id ? this.userRepo.findOneBy({ id }) : null;
+  findOneById(id: string) {
+    return id ? this.userRepo.findOneBy({ id }) : Promise.resolve(null);
+  }
+
+  findOneByEmail(email: string) {
+    return email ? this.userRepo.findOneBy({ email }) : Promise.resolve(null);
+  }
+
+  findOneByEmailWithPassword(email: string) {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .select('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async findOneByIdOrFail(id: string) {
@@ -25,6 +39,11 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async create(data: CreateUserDto) {
+    const user = this.userRepo.create(data);
+    return this.userRepo.save(user);
   }
 
   async update(id: string, data: UpdateUserDto) {

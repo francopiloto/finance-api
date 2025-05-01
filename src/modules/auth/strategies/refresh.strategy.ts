@@ -1,38 +1,53 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { PassportStrategy } from '@nestjs/passport'
-import { Request } from 'express'
-import { Strategy } from 'passport-jwt'
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Request } from 'express';
+import { Strategy } from 'passport-jwt';
+import { Repository } from 'typeorm';
 
-import { UserService } from '@modules/user/user.service'
+import { UserService } from '@modules/user/user.service';
 
-import { AuthStrategyName } from '../auth.constants'
-import { AuthService } from '../auth.service'
+import { AuthStrategyName } from '../auth.constants';
+import { AuthToken } from '../entities/token.entity';
+import { TokenFactory } from '../token/token.factory';
+import { jwtFromRequest } from '../token/token.utils';
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, AuthStrategyName.REFRESH) {
-    constructor(
-        private readonly userService: UserService,
-        private readonly authService: AuthService,
-        configService: ConfigService
+  constructor(
+    readonly configService: ConfigService,
+
+    @InjectRepository(AuthToken)
+    private readonly tokenRepo: Repository<AuthToken>,
+    private readonly userService: UserService,
+    private readonly tokenFactory: TokenFactory,
+  ) {
+    super({
+      jwtFromRequest,
+      ignoreExpiration: false,
+      passReqToCallback: true,
+      secretOrKey: configService.get('jwt.refreshSecret') || configService.get('jwt.secret'),
+    });
+  }
+
+  async validate(req: Request, { sub: userId, aud: device }: { sub: string; aud: string }) {
+    const refreshToken = jwtFromRequest(req);
+
+    const [user, token] = await Promise.all([
+      this.userService.findOneById(userId),
+      this.tokenRepo.findOne({ where: { user: { id: userId }, device } }),
+    ]);
+
+    if (
+      user &&
+      token &&
+      refreshToken &&
+      token.refreshTokenHash === this.tokenFactory.hashToken(refreshToken)
     ) {
-        super({
-            jwtFromRequest: (req: Request) => req.headers?.authorization?.replace(/bearer\s+/i, ''),
-            ignoreExpiration: false,
-            secretOrKey: configService.get('jwt.secret'),
-        })
+      return [user, { device }];
     }
 
-    async validate(payload: { sub: string; aud: string; iss: string }) {
-        const [user, token] = await Promise.all([
-            this.userService.findOneById(payload.sub),
-            this.authService.findRefreshToken(payload.iss),
-        ])
-
-        if (user && token && payload.aud) {
-            return [user, { appId: payload.aud }]
-        }
-
-        throw new UnauthorizedException()
-    }
+    throw new UnauthorizedException('Invalid refresh token');
+  }
 }

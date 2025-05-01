@@ -1,12 +1,16 @@
-import { IsEmail, IsString } from 'class-validator'
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class SignInUserDto {
-    @IsEmail()
-    email: string
+  @IsEmail()
+  @Length(1, 255)
+  email: string;
 
-    @IsString()
-    password: string
+  @IsString()
+  @Length(6, 100)
+  password: string;
 
-    @IsString()
-    appId: string
+  @IsOptional()
+  @IsString()
+  @Length(3, 100)
+  device?: string;
 }

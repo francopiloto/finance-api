@@ -1,6 +1,6 @@
 import { IsEmail, IsString, Length } from 'class-validator';
 
-export class SignUpUserDto {
+export class CreateUserDto {
   @IsString()
   @Length(1, 255)
   name: string;
@@ -10,6 +10,6 @@ export class SignUpUserDto {
   email: string;
 
   @IsString()
-  @Length(6, 100)
+  @Length(60, 60)
   password: string;
 }
