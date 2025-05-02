@@ -5,7 +5,7 @@ import { DataSource, EntityTarget } from 'typeorm';
 import { OWNER_ENTITY_KEY, OWNER_PARAM_KEY } from '../auth.constants';
 
 @Injectable()
-export class IsOwnerGuard implements CanActivate {
+export class ResourceOwnerGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly dataSource: DataSource,

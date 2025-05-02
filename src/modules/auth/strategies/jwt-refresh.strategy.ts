@@ -14,7 +14,7 @@ import { TokenFactory } from '../token/token.factory';
 import { jwtFromRequest } from '../token/token.utils';
 
 @Injectable()
-export class RefreshStrategy extends PassportStrategy(Strategy, AuthStrategyName.REFRESH) {
+export class RefreshTokenStrategy extends PassportStrategy(Strategy, AuthStrategyName.REFRESH_JWT) {
   constructor(
     readonly configService: ConfigService,
 

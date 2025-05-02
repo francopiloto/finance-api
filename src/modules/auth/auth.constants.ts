@@ -4,5 +4,5 @@ export const OWNER_PARAM_KEY = 'owner:param';
 
 export enum AuthStrategyName {
   JWT = 'jwt',
-  REFRESH = 'jwt-refresh',
+  REFRESH_JWT = 'jwt-refresh',
 }

@@ -11,8 +11,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthToken } from './entities/token.entity';
 import { DefaultAuthGuard } from './guards/default.guard';
+import { RefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { RefreshStrategy } from './strategies/refresh.strategy';
 import { TokenFactory } from './token/token.factory';
 
 @Module({
@@ -31,7 +31,7 @@ import { TokenFactory } from './token/token.factory';
   providers: [
     AuthService,
     JwtStrategy,
-    RefreshStrategy,
+    RefreshTokenStrategy,
     TokenFactory,
     { provide: APP_GUARD, useClass: DefaultAuthGuard },
   ],

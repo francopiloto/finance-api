@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiOperation,
@@ -9,7 +9,7 @@ import {
 import { User } from '@modules/user/entities/user.entity';
 
 import { AuthService } from './auth.service';
-import { AuthInfo, AuthStrategyRefresh, CurrentUser, Public } from './decorators';
+import { AuthInfo, AuthRefreshGuard, CurrentUser, Public } from './decorators';
 import { SignInUserDto } from './dtos/signin-user.dto';
 import { SignUpUserDto } from './dtos/signup-user.dto';
 
@@ -31,7 +31,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Authenticate a user and return access/refresh tokens' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  signIn(@Body() data: SignInUserDto) {
+  signin(@Body() data: SignInUserDto) {
     return this.authService.signin(data);
   }
 
@@ -41,10 +41,10 @@ export class AuthController {
     return this.authService.signout(id, device);
   }
 
-  @Get('refresh')
-  @AuthStrategyRefresh()
+  @Post('refresh')
+  @AuthRefreshGuard()
   @ApiOperation({ summary: 'Refresh access and refresh tokens' })
-  refreshToken(@CurrentUser() user: User, @AuthInfo('device') device: string) {
+  refresh(@CurrentUser() user: User, @AuthInfo('device') device: string) {
     return this.authService.generateTokens(user, device);
   }
 }
