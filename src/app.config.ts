@@ -2,19 +2,21 @@ import { config } from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
-config({ path: `.env.${process.env.NODE_ENV}` });
+config({ path: `.env.${process.env.NODE_ENV || 'dev'}` });
 
 const typeormConfig: DataSourceOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  entities: [`**/*.entity.${process.env.NODE_ENV === 'test' ? 'ts' : 'js'}`],
-  migrations: ['migrations/*.js'],
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT) : 5432,
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  entities: ['dist/**/*.entity{.ts,.js}'],
+  migrations: ['dist/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: true,
+  synchronize: false,
+  migrationsRun: false,
+  logging: process.env.NODE_ENV !== 'production',
 };
 
 export const dataSource = new DataSource(typeormConfig);
@@ -28,9 +30,9 @@ export async function appConfig() {
     },
     typeorm: typeormConfig,
     jwt: {
-      secret: process.env.JWT_SECRET,
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h',
-      refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '1d',
+      secret: process.env.AUTH_JWT_SECRET,
+      expiresIn: process.env.AUTH_JWT_EXPIRES_IN || '1h',
+      refreshExpiresIn: process.env.AUTH_JWT_REFRESH_EXPIRES_IN || '1d',
     },
   };
 }
