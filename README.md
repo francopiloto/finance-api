@@ -1,113 +1,193 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 💸 Finance API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A modern, secure and scalable API for personal finance management. Built with **NestJS**, this backend system showcases a professional-grade architecture featuring advanced authentication, modular design, and full test coverage — everything companies hiring top-level engineers expect.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## ✨ Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### ✅ Authentication & Authorization
 
-## Nest setup
+- JWT-based **access token** and **refresh token** system
+- Token revocation and session management by device (`aud`)
+- Modular Passport strategies (`jwt`, `jwt-refresh`)
+- Guards for:
+  - Public/private route protection
+  - Refresh token verification
+  - Resource ownership enforcement
+- Decorators for:
+  - Current user injection
+  - Custom authentication info (e.g., device)
 
-```bash
-$ npm install -g @nestjs/cli
+### ✅ User Module
 
-# create a new project
-$ nest new project_name
+- Signup with hashed password
+- Login with secure credentials
+- Refresh & revoke tokens
+- Update profile (`name`, `email`)
+- Protected endpoints using guards and decorators
 
-# generate files
-$ nest g module module_name
-$ nest g service service_name
-$ nest g constroller controller_name
-```
+### ✅ Expense Management
 
-## Project setup
+- Create, update and delete **expenses**
+- Support for recurring expenses via **installments**
+- Categorize by priority and **expense groups** (global or user-defined)
+- Track **payment status** (`pending`, `scheduled`, `paid`)
+- Link **payment methods** with due/payment day support
 
-```bash
-$ yarn install
-```
+### ✅ Code Quality & Best Practices
 
-## Compile and run the project
+- Modular architecture (`src/modules`)
+- Clean separation of entities, services, controllers, DTOs
+- Swagger integration (`@nestjs/swagger`)
+- Uses `@nestjs/config`, `class-validator`, `typeorm`, `bcrypt`, `passport`
 
-```bash
-# development
-$ yarn run start
+### ✅ Tests
 
-# watch mode
-$ yarn run start:dev
+- Unit tests with `jest`
+- Full coverage for services, controllers, strategies, and guards
+- Mocks and isolated test environments
 
-# production mode
-$ yarn run start:prod
-```
+---
 
-## Run tests
+## 🛠️ Technologies
 
-```bash
-# unit tests
-$ yarn run test
+- **NestJS**: Progressive Node.js framework
+- **TypeORM**: Database ORM for PostgreSQL
+- **Passport**: Modular authentication middleware
+- **JWT**: Stateless authentication
+- **Jest**: Testing framework
 
-# e2e tests
-$ yarn run test:e2e
+---
 
-# test coverage
-$ yarn run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🚀 Getting Started
 
 ```bash
-$ yarn install -g mau
-$ mau deploy
+# Install dependencies
+yarn install
+
+# Copy environment files and set the values according to your local environment. See the **Environment Variables** section below for the complete list of variables.
+cp .env.example .env.dev
+cp .env.example .env.test
+
+# Generate database schema
+# (Only if the database is empty or for the first time)
+yarn build
+npm run migration:run
+
+# Start development server
+yarn start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🔄 Workflow
 
-Check out a few resources that may come in handy when working with NestJS:
+### 🧪 Running tests
 
--   Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
--   For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
--   To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
--   Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
--   Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
--   Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
--   To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
--   Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+yarn test      # run unit tests
+yarn test:cov  # check coverage
+```
 
-## Support
+### 📦 After editing any entity
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Generate a new migration (auto detects changes)
+npm run migration:generate --name=migration-name
 
-## Stay in touch
+# Rebuild and apply migration
+yarn build
+npm run migration:run
+```
 
--   Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
--   Website - [https://nestjs.com](https://nestjs.com/)
--   Twitter - [@nestframework](https://twitter.com/nestframework)
+### 🔁 After pulling updates from Git
 
-## License
+```bash
+yarn install
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Check for changes in the .env.example file
+# Rebuild and apply any new migrations
+yarn build
+npm run migration:run
+```
+
+### 💡 Tip: How to revert a migration
+
+```bash
+yarn build
+npm run migration:revert
+```
+
+---
+
+## 📁 Environment Variables
+
+Keep your environment files **out of version control**. Use `.env.example` as a reference.
+
+```env
+# Database
+DATABASE_HOST=
+DATABASE_PORT=
+DATABASE_NAME=
+DATABASE_USER=
+DATABASE_PASSWORD=
+
+# JWT configuration
+AUTH_JWT_SECRET=
+AUTH_JWT_EXPIRES_IN=
+AUTH_JWT_REFRESH_EXPIRES_IN=
+```
+
+Create two local copies:
+
+```bash
+cp .env.example .env.dev
+cp .env.example .env.test
+```
+
+---
+
+## 🥪 Test Coverage
+
+![Coverage Badge](https://img.shields.io/badge/test--coverage-100%25-brightgreen)
+
+---
+
+## 📌 Why This Project Stands Out
+
+✅ Designed for **real-world scalability**  
+✅ Implements **secure and granular access control**  
+✅ Clean, modern **code structure**  
+✅ Fully **tested** and **documented**  
+✅ Showcases advanced **NestJS mastery**
+
+---
+
+## 📅 UUIDv7 for Entity IDs
+
+This project uses **UUIDv7** as the default identifier for all database entities. UUIDv7 brings the best of both worlds:
+
+- 📈 **Performance**: Sequentially sortable, improving write performance and index locality in PostgreSQL.
+- 🔒 **Security**: Maintains randomness and uniqueness without relying on centralized ID generators.
+- 🌐 **Scalability**: Ideal for distributed systems that require high-throughput insertions.
+
+The implementation uses a custom `@PrimaryUuidColumn()` decorator that automatically generates UUIDv7 values for entity primary keys. This ensures consistency and eliminates the need for manual ID assignment.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
+
+## 🤝 Contact
+
+📧 fjmanselmo@gmail.com
+🔗 [LinkedIn Profile](https://www.linkedin.com/in/franco-marques/)
+💼 Open to full-time **remote opportunities**
+
+---
+
+Made with ❤️ using NestJS

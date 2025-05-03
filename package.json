@@ -1,10 +1,10 @@
 {
   "name": "finance-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A secure and modular API for managing personal finances, built with NestJS.",
+  "author": "Francisco Anselmo fjmanselmo@gmail,com",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -18,9 +18,12 @@
     "test:cov": "cross-env NODE_ENV=test jest --coverage",
     "test:debug": "cross-env NODE_ENV=test node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --maxWorkers=1",
-    "typeorm": "ts-node ./node_modules/typeorm/cli",
-    "migration:create": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:create ./migrations/$npm_config_name",
-    "migration:generate": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:generate -d ./src/app.config.ts ./migrations/$npm_config_name"
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
+    "migration:lint": "eslint ./src/migrations/*.ts --fix",
+    "migration:create": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:create ./src/migrations/$npm_config_name",
+    "migration:generate": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:generate -d ./src/app.config.ts ./src/migrations/$npm_config_name",
+    "migration:run": "cross-env NODE_ENV=dev npm run typeorm -- migration:run -d ./src/app.config.ts",
+    "migration:revert": "cross-env NODE_ENV=dev npm run typeorm -- migration:revert -d ./src/app.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -43,7 +46,8 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",
-    "typeorm-naming-strategies": "^4.1.0"
+    "typeorm-naming-strategies": "^4.1.0",
+    "uuidv7": "^1.0.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
