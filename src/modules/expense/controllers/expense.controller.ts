@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -8,8 +8,7 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
-import { CurrentUser } from '@modules/auth/decorators/user.decorator';
+import { CheckOwnership, CurrentUser } from '@modules/auth/decorators';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateExpenseDto } from '../dtos/create-expense.dto';
@@ -30,23 +29,27 @@ export class ExpenseController {
   }
 
   @Patch(':id')
-  @OwnerEntity(Expense)
+  @CheckOwnership(Expense)
   @ApiOperation({ summary: 'Update an expense header' })
   @ApiOkResponse({ description: 'Expense updated successfully.' })
   @ApiNotFoundResponse({ description: 'Expense not found.' })
-  update(@CurrentUser() user: User, @Param('id') id: string, @Body() data: UpdateExpenseDto) {
+  update(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdateExpenseDto,
+  ) {
     return this.service.update(user, id, data);
   }
 
   @Delete(':id')
-  @OwnerEntity(Expense)
+  @CheckOwnership(Expense)
   @ApiOperation({ summary: 'Delete an expense if all installments are still pending' })
   @ApiOkResponse({ description: 'Expense deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Expense not found.' })
   @ApiConflictResponse({
     description: 'Cannot delete expense with associated non pending installments.',
   })
-  remove(@CurrentUser() user: User, @Param('id') id: string) {
+  remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.remove(user, id);
   }
 }

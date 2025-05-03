@@ -2,19 +2,19 @@ import { ExecutionContext, NotFoundException } from '@nestjs/common';
 
 import { User } from '@modules/user/entities/user.entity';
 
-import { ResourceOwnerGuard } from './owner.guard';
+import { OwnershipGuard } from './ownership.guard';
 
 const mockReflector = { get: jest.fn() };
 const mockRepo = { findOne: jest.fn() };
 const mockDataSource = { getRepository: jest.fn().mockReturnValue(mockRepo) };
 
-describe('ResourceOwnerGuard', () => {
-  let guard: ResourceOwnerGuard;
+describe('OwnershipGuard', () => {
+  let guard: OwnershipGuard;
 
   const user: User = { id: 'user-id' } as User;
 
   beforeEach(() => {
-    guard = new ResourceOwnerGuard(mockReflector as any, mockDataSource as any);
+    guard = new OwnershipGuard(mockReflector as any, mockDataSource as any);
     jest.clearAllMocks();
   });
 

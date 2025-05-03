@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -8,8 +8,7 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
-import { CurrentUser } from '@modules/auth/decorators/user.decorator';
+import { CheckOwnership, CurrentUser } from '@modules/auth/decorators';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateInstallmentDto } from '../dtos/create-installment.dto';
@@ -25,7 +24,7 @@ export class InstallmentController {
   constructor(private readonly service: InstallmentService) {}
 
   @Post(':expenseId')
-  @OwnerEntity(Expense, 'expenseId')
+  @CheckOwnership(Expense, 'expenseId')
   @ApiOperation({ summary: 'Add a new installment to an expense' })
   @ApiCreatedResponse({ description: 'Installment created successfully.' })
   @ApiNotFoundResponse({ description: 'Expense or payment method not found.' })
@@ -38,40 +37,40 @@ export class InstallmentController {
   }
 
   @Patch(':id')
-  @OwnerEntity(Installment)
+  @CheckOwnership(Installment)
   @ApiOperation({ summary: 'Update an installment' })
   @ApiOkResponse({ description: 'Installment updated successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
   @ApiConflictResponse({ description: 'Cannot edit a paid or scheduled installment.' })
   async update(
     @CurrentUser() user: User,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateInstallmentDto,
   ) {
     return this.service.update(user, id, data);
   }
 
   @Patch(':id/status')
-  @OwnerEntity(Installment)
+  @CheckOwnership(Installment)
   @ApiOperation({ summary: 'Update only the status of an installment' })
   @ApiOkResponse({ description: 'Installment status updated successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
   @ApiConflictResponse({ description: 'Invalid status transition or installment already paid.' })
   async updateStatus(
     @CurrentUser() user: User,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateInstallmentStatusDto,
   ) {
     return this.service.updateStatus(user, id, data);
   }
 
   @Delete(':id')
-  @OwnerEntity(Installment)
+  @CheckOwnership(Installment)
   @ApiOperation({ summary: 'Delete a pending installment' })
   @ApiOkResponse({ description: 'Installment removed successfully.' })
   @ApiNotFoundResponse({ description: 'Installment not found.' })
   @ApiConflictResponse({ description: 'Cannot remove installment that is not pending.' })
-  async remove(@CurrentUser() user: User, @Param('id') id: string) {
+  async remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.remove(user, id);
   }
 }

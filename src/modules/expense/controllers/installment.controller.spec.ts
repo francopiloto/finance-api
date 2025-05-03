@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { mockOwnerEntityProviders } from 'test/setup/owner-entity.providers';
+import { mockOwnershipProviders } from 'test/setup/owner-entity.providers';
 
 import { User } from '@modules/user/entities/user.entity';
 
@@ -30,7 +30,7 @@ describe('InstallmentController', () => {
       controllers: [InstallmentController],
       providers: [
         { provide: InstallmentService, useFactory: mockInstallmentService },
-        ...mockOwnerEntityProviders,
+        ...mockOwnershipProviders,
       ],
     }).compile();
 

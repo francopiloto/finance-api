@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 
-import { ResourceOwnerGuard } from '@modules/auth/guards/owner.guard';
+import { OwnershipGuard } from '@modules/auth/guards/ownership.guard';
 
-export const mockOwnerEntityProviders = [
-  { provide: ResourceOwnerGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
+export const mockOwnershipProviders = [
+  { provide: OwnershipGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
   { provide: DataSource, useValue: {} },
 ];

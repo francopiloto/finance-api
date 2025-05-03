@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -9,8 +9,7 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
-import { CurrentUser } from '@modules/auth/decorators/user.decorator';
+import { CheckOwnership, CurrentUser } from '@modules/auth/decorators';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreatePaymentMethodDto } from '../dtos/create-payment-method.dto';
@@ -39,23 +38,27 @@ export class PaymentMethodController {
   }
 
   @Patch(':id')
-  @OwnerEntity(PaymentMethod)
+  @CheckOwnership(PaymentMethod)
   @ApiOperation({ summary: 'Update a user-customized payment method' })
   @ApiOkResponse({ description: 'Payment method updated successfully.' })
   @ApiNotFoundResponse({ description: 'Payment method not found.' })
-  update(@CurrentUser() user: User, @Param('id') id: string, @Body() data: UpdatePaymentMethodDto) {
+  update(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdatePaymentMethodDto,
+  ) {
     return this.service.update(user, id, data);
   }
 
   @Delete(':id')
-  @OwnerEntity(PaymentMethod)
+  @CheckOwnership(PaymentMethod)
   @ApiOperation({ summary: 'Delete a user-customized payment method that has not yet been used.' })
   @ApiOkResponse({ description: 'Payment method deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Payment method not found.' })
   @ApiConflictResponse({
     description: 'Cannot delete payment method with associated installments.',
   })
-  remove(@CurrentUser() user: User, @Param('id') id: string) {
+  remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.remove(user, id);
   }
 }

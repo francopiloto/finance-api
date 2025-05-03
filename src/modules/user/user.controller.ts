@@ -2,7 +2,7 @@ import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { CurrentUser } from '@modules/auth/decorators/user.decorator';
+import { CurrentUser } from '@modules/auth/decorators';
 
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';

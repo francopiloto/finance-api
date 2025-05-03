@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -9,8 +9,7 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { OwnerEntity } from '@modules/auth/decorators/owner.decorator';
-import { CurrentUser } from '@modules/auth/decorators/user.decorator';
+import { CheckOwnership, CurrentUser } from '@modules/auth/decorators';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateExpenseGroupDto } from '../dtos/create-expense-group.dto';
@@ -39,21 +38,25 @@ export class ExpenseGroupController {
   }
 
   @Patch(':id')
-  @OwnerEntity(ExpenseGroup)
+  @CheckOwnership(ExpenseGroup)
   @ApiOperation({ summary: 'Update a user-customized expense group' })
   @ApiOkResponse({ description: 'Expense group updated successfully.' })
   @ApiNotFoundResponse({ description: 'Expense group not found.' })
-  update(@CurrentUser() user: User, @Param('id') id: string, @Body() data: UpdateExpenseGroupDto) {
+  update(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdateExpenseGroupDto,
+  ) {
     return this.service.update(user, id, data);
   }
 
   @Delete(':id')
-  @OwnerEntity(ExpenseGroup)
+  @CheckOwnership(ExpenseGroup)
   @ApiOperation({ summary: 'Delete a user-customized expense group' })
   @ApiOkResponse({ description: 'Expense group deleted successfully.' })
   @ApiNotFoundResponse({ description: 'Expense group not found.' })
   @ApiConflictResponse({ description: 'Cannot delete expense group with associated expenses.' })
-  remove(@CurrentUser() user: User, @Param('id') id: string) {
+  remove(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.remove(user, id);
   }
 }
