@@ -1,10 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 
+import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 @Entity()
 export class PaymentMethod {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryUuidColumn()
   id: string;
 
   @Column({ length: 255 })

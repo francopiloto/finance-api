@@ -1,12 +1,13 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
+import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 @Entity()
 @Unique(['user', 'name'])
 export class Wallet {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryUuidColumn()
   id: string;
 
   @Column({ length: 100 })

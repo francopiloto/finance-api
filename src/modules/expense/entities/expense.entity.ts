@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
+import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { ExpensePriority } from '../expense.constants';
@@ -8,7 +9,7 @@ import { Installment } from './installment.entity';
 
 @Entity()
 export class Expense {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryUuidColumn()
   id: string;
 
   @ManyToOne(() => ExpenseGroup, { nullable: false, onDelete: 'RESTRICT' })

@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
+import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 import { InstallmentStatus } from '../expense.constants';
@@ -8,7 +9,7 @@ import { PaymentMethod } from './payment-method.entity';
 
 @Entity()
 export class Installment {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryUuidColumn()
   id: string;
 
   @ManyToOne(() => Expense, { nullable: false, onDelete: 'CASCADE' })

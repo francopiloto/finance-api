@@ -1,19 +1,12 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Unique,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, Unique, UpdateDateColumn } from 'typeorm';
 
+import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
 import { User } from '@modules/user/entities/user.entity';
 
 @Entity()
 @Unique(['user', 'device'])
 export class AuthToken {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryUuidColumn()
   id: string;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
