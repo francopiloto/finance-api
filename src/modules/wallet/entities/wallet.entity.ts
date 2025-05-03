@@ -1,20 +1,22 @@
-import { ApiHideProperty } from '@nestjs/swagger'
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { ApiHideProperty } from '@nestjs/swagger';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
-import { User } from '@modules/user/entities/user.entity'
+import { User } from '@modules/user/entities/user.entity';
 
 @Entity()
+@Unique(['user', 'name'])
 export class Wallet {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    name: string
+  @Column({ length: 100 })
+  name: string;
 
-    @Column({ nullable: true })
-    description?: string
+  @Column({ nullable: true, length: 255 })
+  description?: string;
 
-    @ManyToOne(() => User, { nullable: false })
-    @ApiHideProperty()
-    user: User
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  @ApiHideProperty()
+  user: User;
 }

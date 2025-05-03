@@ -1,10 +1,12 @@
-import { IsOptional, IsString } from 'class-validator'
+import { IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateWalletDto {
-    @IsString()
-    name: string
+  @IsString()
+  @Length(3, 100)
+  name: string;
 
-    @IsString()
-    @IsOptional()
-    description?: string
+  @IsOptional()
+  @IsString()
+  @Length(5, 255)
+  description?: string;
 }

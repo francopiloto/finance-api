@@ -1,48 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { User } from '@modules/user/entities/user.entity'
+import { User } from '@modules/user/entities/user.entity';
 
-import { CreateWalletDto } from './dtos/create-wallet.dto'
-import { UpdateWalletDto } from './dtos/update-wallet.dto'
-import { Wallet } from './entities/wallet.entity'
+import { CreateWalletDto } from './dtos/create-wallet.dto';
+import { UpdateWalletDto } from './dtos/update-wallet.dto';
+import { Wallet } from './entities/wallet.entity';
 
 @Injectable()
 export class WalletService {
-    constructor(@InjectRepository(Wallet) private walletRepository: Repository<Wallet>) {}
+  constructor(@InjectRepository(Wallet) private readonly walletRepo: Repository<Wallet>) {}
 
-    create(user: User, data: CreateWalletDto) {
-        const wallet = this.walletRepository.create({ ...data, user })
-        return this.walletRepository.save(wallet)
+  async findAll(user: User): Promise<Wallet[]> {
+    return user ? this.walletRepo.find({ where: { user }, order: { name: 'ASC' } }) : [];
+  }
+
+  async findOneByIdOrFail(user: User, id: string) {
+    const wallet = user && id ? await this.walletRepo.findOne({ where: { id, user } }) : null;
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
     }
 
-    async update(id: string, user: User, data: UpdateWalletDto) {
-        if (id && user) {
-            const wallet = await this.walletRepository.findOneBy({ id, user })
+    return wallet;
+  }
 
-            if (wallet) {
-                Object.assign(wallet, data)
-                return this.walletRepository.save(wallet)
-            }
-        }
+  create(user: User, data: CreateWalletDto) {
+    const wallet = this.walletRepo.create({ ...data, user });
+    return this.walletRepo.save(wallet);
+  }
 
-        throw new NotFoundException()
-    }
+  async update(user: User, id: string, data: UpdateWalletDto) {
+    const wallet = await this.findOneByIdOrFail(user, id);
 
-    async remove(id: string, user: User) {
-        if (id && user) {
-            const wallet = await this.walletRepository.findOneBy({ id, user })
+    Object.assign(wallet, data);
+    return this.walletRepo.save(wallet);
+  }
 
-            if (wallet) {
-                return this.walletRepository.remove(wallet)
-            }
-        }
-
-        throw new NotFoundException()
-    }
-
-    async findWallets(user: User): Promise<Wallet[]> {
-        return user ? this.walletRepository.findBy({ user }) : []
-    }
+  async remove(user: User, id: string) {
+    const wallet = await this.findOneByIdOrFail(user, id);
+    return this.walletRepo.remove(wallet);
+  }
 }
