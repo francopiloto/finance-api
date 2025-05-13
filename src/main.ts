@@ -1,4 +1,5 @@
 import { INestApplication, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -21,6 +22,13 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'dev') {
     configureSwagger(app);
   }
+
+  const configService = app.get(ConfigService);
+
+  app.enableCors({
+    origin: configService.get<string>('cors.origin') || '*',
+    credentials: true,
+  });
 
   await app.listen(process.env.PORT ?? 4000);
   Logger.log(`Application is running on: ${await app.getUrl()}`);

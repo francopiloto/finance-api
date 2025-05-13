@@ -4,6 +4,9 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 config({ path: `.env.${process.env.NODE_ENV || 'dev'}` });
 
+/**
+ * TypeORM configuration
+ */
 const typeormConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DATABASE_HOST,
@@ -21,14 +24,21 @@ const typeormConfig: DataSourceOptions = {
 
 export const dataSource = new DataSource(typeormConfig);
 
+/**
+ * Application-wide configuration
+ */
 export async function appConfig() {
-  /** Access external services here to fetch protected configurations */
+  // 🔐 Placeholder: fetch external secrets if needed
+  // Example: const secrets = await fetchFromAWSSecretManager();
 
   return {
     node: {
       env: process.env.NODE_ENV,
     },
     typeorm: typeormConfig,
+    cors: {
+      origin: process.env.CORS_ORIGIN || '*',
+    },
     jwt: {
       secret: process.env.AUTH_JWT_SECRET,
       expiresIn: process.env.AUTH_JWT_EXPIRES_IN || '1h',
