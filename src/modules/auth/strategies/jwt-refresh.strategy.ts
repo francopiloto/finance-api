@@ -36,7 +36,10 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, AuthStrateg
 
     const [user, token] = await Promise.all([
       this.userService.findOneById(userId),
-      this.tokenRepo.findOne({ where: { user: { id: userId }, device } }),
+      this.tokenRepo.findOne({
+        where: { user: { id: userId }, device },
+        select: ['id', 'refreshTokenHash'],
+      }),
     ]);
 
     if (
