@@ -51,7 +51,7 @@ export class AuthService {
       device,
     );
 
-    await this.tokenRepo.upsert(tokenRecord, ['user', 'device']);
+    await this.tokenRepo.upsert(this.tokenRepo.create(tokenRecord), ['user', 'device']);
     return { accessToken, refreshToken };
   }
 }
