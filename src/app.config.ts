@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { DataSource, DataSourceOptions } from 'typeorm';
+import { DataSource, type DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 config({ path: `.env.${process.env.NODE_ENV || 'dev'}` });
@@ -10,7 +10,7 @@ config({ path: `.env.${process.env.NODE_ENV || 'dev'}` });
 const typeormConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DATABASE_HOST,
-  port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT) : 5432,
+  port: process.env.DATABASE_PORT ? Number.parseInt(process.env.DATABASE_PORT) : 5432,
   username: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
