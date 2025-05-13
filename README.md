@@ -190,4 +190,10 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ---
 
+## 📌 Related Projects
+
+- [Finance-WEB (React frontend)](https://github.com/francopiloto/finance-web)
+
+---
+
 Made with ❤️ using NestJS
