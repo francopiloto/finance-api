@@ -5,6 +5,7 @@ import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
+import { fk } from '@utils/db';
 
 import { CreatePaymentMethodDto } from '../dtos/create-payment-method.dto';
 import { PaymentMethodResponseDto } from '../dtos/payment-method-response.dto';
@@ -22,12 +23,12 @@ export class PaymentMethodService {
   ) {}
 
   findAll(user: User): Promise<PaymentMethod[]> {
-    return this.paymentRepo.find({ where: { user: { id: user.id } }, order: { name: 'ASC' } });
+    return this.paymentRepo.find({ where: { user: fk(user) }, order: { name: 'ASC' } });
   }
 
   async findById(user: User, id: string): Promise<PaymentMethod> {
     const method =
-      user && id ? await this.paymentRepo.findOne({ where: { user: { id: user.id }, id } }) : null;
+      user && id ? await this.paymentRepo.findOne({ where: { user: fk(user), id } }) : null;
 
     if (!method) {
       throw new NotFoundException('Payment Method not found');
@@ -54,7 +55,7 @@ export class PaymentMethodService {
     const paymentMethod = await this.findById(user, id);
 
     const hasInstallments = await this.installmentRepo.findOne({
-      where: { paymentMethod: { id: paymentMethod.id } },
+      where: { paymentMethod: fk(paymentMethod) },
       select: ['id'],
     });
 
