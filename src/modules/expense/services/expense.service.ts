@@ -1,9 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { addMonths } from 'date-fns';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
+import { fk } from '@utils/db';
 
 import { CreateExpenseDto } from '../dtos/create-expense.dto';
 import { UpdateExpenseDto } from '../dtos/update-expense.dto';
@@ -50,7 +52,7 @@ export class ExpenseService {
       const group = await this.findGroup(user, groupId, manager);
 
       const paymentMethod = await manager.findOne(PaymentMethod, {
-        where: { user, id: paymentMethodId },
+        where: { user: fk(user), id: paymentMethodId },
       });
 
       if (!paymentMethod) {
@@ -85,7 +87,7 @@ export class ExpenseService {
       const expense =
         user && id
           ? await manager.findOne(Expense, {
-              where: { user, id },
+              where: { user: fk(user), id },
               relations: ['installments'],
             })
           : null;

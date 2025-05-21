@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
+import { fk } from '@utils/db';
 
 import { CreateWalletDto } from './dtos/create-wallet.dto';
 import { UpdateWalletDto } from './dtos/update-wallet.dto';
@@ -13,11 +15,12 @@ export class WalletService {
   constructor(@InjectRepository(Wallet) private readonly walletRepo: Repository<Wallet>) {}
 
   async findAll(user: User): Promise<Wallet[]> {
-    return user ? this.walletRepo.find({ where: { user }, order: { name: 'ASC' } }) : [];
+    return user ? this.walletRepo.find({ where: { user: fk(user) }, order: { name: 'ASC' } }) : [];
   }
 
   async findOneByIdOrFail(user: User, id: string) {
-    const wallet = user && id ? await this.walletRepo.findOne({ where: { id, user } }) : null;
+    const wallet =
+      user && id ? await this.walletRepo.findOne({ where: { id, user: fk(user) } }) : null;
 
     if (!wallet) {
       throw new NotFoundException('Wallet not found');
