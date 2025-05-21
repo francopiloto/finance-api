@@ -1,10 +1,13 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
+import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreatePaymentMethodDto } from '../dtos/create-payment-method.dto';
+import { PaymentMethodResponseDto } from '../dtos/payment-method-response.dto';
 import { UpdatePaymentMethodDto } from '../dtos/update-payment-method.dto';
 import { Installment } from '../entities/installment.entity';
 import { PaymentMethod } from '../entities/payment-method.entity';
@@ -19,11 +22,12 @@ export class PaymentMethodService {
   ) {}
 
   findAll(user: User): Promise<PaymentMethod[]> {
-    return this.paymentRepo.find({ where: { user }, order: { name: 'ASC' } });
+    return this.paymentRepo.find({ where: { user: { id: user.id } }, order: { name: 'ASC' } });
   }
 
   async findById(user: User, id: string): Promise<PaymentMethod> {
-    const method = user && id ? await this.paymentRepo.findOne({ where: { user, id } }) : null;
+    const method =
+      user && id ? await this.paymentRepo.findOne({ where: { user: { id: user.id }, id } }) : null;
 
     if (!method) {
       throw new NotFoundException('Payment Method not found');
@@ -32,9 +36,11 @@ export class PaymentMethodService {
     return method;
   }
 
-  create(user: User, data: CreatePaymentMethodDto): Promise<PaymentMethod> {
+  async create(user: User, data: CreatePaymentMethodDto): Promise<PaymentMethodResponseDto> {
     const method = this.paymentRepo.create({ ...data, user });
-    return this.paymentRepo.save(method);
+    const saved = await this.paymentRepo.save(method);
+
+    return plainToInstance(PaymentMethodResponseDto, saved, { excludeExtraneousValues: true });
   }
 
   async update(user: User, id: string, data: UpdatePaymentMethodDto): Promise<PaymentMethod> {
@@ -48,7 +54,7 @@ export class PaymentMethodService {
     const paymentMethod = await this.findById(user, id);
 
     const hasInstallments = await this.installmentRepo.findOne({
-      where: { paymentMethod },
+      where: { paymentMethod: { id: paymentMethod.id } },
       select: ['id'],
     });
 
