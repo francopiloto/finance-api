@@ -1,6 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
@@ -20,7 +21,7 @@ jest.mock('bcrypt', () => ({
 // eslint-disable-next-line import/order
 import * as bcrypt from 'bcrypt';
 
-const mockTokenRepo = () => ({ delete: jest.fn(), upsert: jest.fn() });
+const mockTokenRepo = () => ({ delete: jest.fn(), upsert: jest.fn(), create: jest.fn() });
 const mockTokenFactory = () => ({ generateTokens: jest.fn() });
 
 const mockUserService = () => ({
