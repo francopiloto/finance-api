@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+
 import { mockOwnershipProviders } from 'test/setup/owner-entity.providers';
 
 import { User } from '@modules/user/entities/user.entity';
@@ -13,6 +14,7 @@ import { InstallmentStatus } from '../expense.constants';
 import { InstallmentService } from '../services/installment.service';
 
 const mockInstallmentService = () => ({
+  findMany: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
@@ -36,6 +38,26 @@ describe('InstallmentController', () => {
 
     controller = module.get(InstallmentController);
     service = module.get(InstallmentService);
+  });
+
+  describe('findMany', () => {
+    it('should call service.findMany with user and filters', async () => {
+      const mockFilters = { status: InstallmentStatus.PAID };
+      const mockData = [{ id: 'iid' }] as Installment[];
+
+      service.findMany.mockResolvedValue([mockData, mockData.length]);
+
+      const result = await controller.findMany(user, mockFilters);
+
+      expect(result).toEqual({
+        data: mockData,
+        page: null,
+        pageSize: null,
+        total: mockData.length,
+      });
+
+      expect(service.findMany).toHaveBeenCalledWith(user, mockFilters);
+    });
   });
 
   describe('create', () => {

@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -12,6 +22,7 @@ import { CheckOwnership, CurrentUser } from '@modules/auth/decorators';
 import { User } from '@modules/user/entities/user.entity';
 
 import { CreateInstallmentDto } from '../dtos/create-installment.dto';
+import { GetInstallmentsDto } from '../dtos/get-installments.dto';
 import { UpdateInstallmentStatusDto } from '../dtos/update-installment-status.dto';
 import { UpdateInstallmentDto } from '../dtos/update-installment.dto';
 import { Expense } from '../entities/expense.entity';
@@ -22,6 +33,20 @@ import { InstallmentService } from '../services/installment.service';
 @ApiDefaultAuth()
 export class InstallmentController {
   constructor(private readonly service: InstallmentService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List installments with optional filters and pagination' })
+  @ApiOkResponse({ description: 'List of installments retrieved successfully.' })
+  async findMany(@CurrentUser() user: User, @Query() filters: GetInstallmentsDto) {
+    const [data, total] = await this.service.findMany(user, filters);
+
+    return {
+      data,
+      total,
+      page: filters.page ?? null,
+      pageSize: filters.pageSize ?? null,
+    };
+  }
 
   @Post(':expenseId')
   @CheckOwnership(Expense, 'expenseId')

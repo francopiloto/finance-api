@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
@@ -22,6 +23,7 @@ const mockInstallmentRepo = () => ({
   save: jest.fn(),
   findOne: jest.fn(),
   remove: jest.fn(),
+  createQueryBuilder: jest.fn(),
 });
 
 describe('InstallmentService', () => {
@@ -29,6 +31,8 @@ describe('InstallmentService', () => {
   let expenseRepo: jest.Mocked<Repository<Expense>>;
   let paymentRepo: jest.Mocked<Repository<PaymentMethod>>;
   let installmentRepo: jest.Mocked<Repository<Installment>>;
+
+  const user = { id: 'user-id' } as User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,9 +50,34 @@ describe('InstallmentService', () => {
     installmentRepo = module.get(getRepositoryToken(Installment));
   });
 
+  describe('findMany', () => {
+    it('should call query builder and return data', async () => {
+      const mockInstallments = [{ id: 'i1' }, { id: 'i2' }];
+      const mockCount = 2;
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockInstallments, mockCount]),
+      };
+
+      installmentRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+
+      const result = await service.findMany(user, {});
+
+      expect(result).toEqual([mockInstallments, mockCount]);
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith('installment.user_id = :userId', {
+        userId: user.id,
+      });
+    });
+  });
+
   describe('create', () => {
     it('should create an installment successfully', async () => {
-      const user = { id: 'user-id' } as User;
       const expense = { id: 'expense-id', user } as Expense;
       const paymentMethod = { id: 'payment-id', user } as PaymentMethod;
 
@@ -90,7 +119,6 @@ describe('InstallmentService', () => {
     });
 
     it('should throw if expense not found on create', async () => {
-      const user = { id: 'user-id' } as User;
       expenseRepo.findOne.mockResolvedValue(null);
 
       await expect(
@@ -103,7 +131,6 @@ describe('InstallmentService', () => {
     });
 
     it('should throw if payment method not found on create', async () => {
-      const user = { id: 'user-id' } as User;
       const expense = { id: 'eid', user } as Expense;
 
       expenseRepo.findOne.mockResolvedValue(expense);
@@ -121,8 +148,6 @@ describe('InstallmentService', () => {
 
   describe('update', () => {
     it('should update an installment successfully', async () => {
-      const user = { id: 'user-id' } as User;
-
       const existingInstallment = {
         id: 'installment-id',
         user,
@@ -205,8 +230,6 @@ describe('InstallmentService', () => {
 
   describe('remove', () => {
     it('should remove an installment successfully', async () => {
-      const user = { id: 'user-id' } as User;
-
       const installment = {
         id: 'installment-id',
         user,
@@ -238,8 +261,6 @@ describe('InstallmentService', () => {
 
   describe('updateStatus', () => {
     it('should update installment status successfully', async () => {
-      const user = { id: 'user-id' } as User;
-
       const installment = {
         id: 'installment-id',
         user,
