@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { mockOwnershipProviders } from 'test/setup/owner-entity.providers';
+
 import { v4 as uuidv4 } from 'uuid';
+
+import { mockOwnershipProviders } from 'test/setup/owner-entity.providers';
 
 import { User } from '@modules/user/entities/user.entity';
 

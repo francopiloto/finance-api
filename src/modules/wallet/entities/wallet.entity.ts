@@ -1,4 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
+
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';

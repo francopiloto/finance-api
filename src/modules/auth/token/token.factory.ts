@@ -1,8 +1,9 @@
-import * as crypto from 'crypto';
-
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+
+import { createHash } from 'crypto';
+
 import { addDays } from 'date-fns';
 
 import { User } from '@modules/user/entities/user.entity';
@@ -35,6 +36,6 @@ export class TokenFactory {
   }
 
   hashToken(token: string) {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return createHash('sha256').update(token).digest('hex');
   }
 }
