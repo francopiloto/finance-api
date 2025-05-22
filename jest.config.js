@@ -9,8 +9,9 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '^@modules/(.*)$': '<rootDir>/src/modules/$1',
     '^@decorators/(.*)$': '<rootDir>/src/decorators/$1',
+    '^@modules/(.*)$': '<rootDir>/src/modules/$1',
+    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^test/(.*)$': '<rootDir>/test/$1',
   },
 };

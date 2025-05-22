@@ -23,7 +23,8 @@
     "migration:create": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:create ./src/migrations/$npm_config_name",
     "migration:generate": "cross-env-shell NODE_ENV=dev npm run typeorm -- migration:generate -d ./src/app.config.ts ./src/migrations/$npm_config_name",
     "migration:run": "cross-env NODE_ENV=dev npm run typeorm -- migration:run -d ./src/app.config.ts",
-    "migration:revert": "cross-env NODE_ENV=dev npm run typeorm -- migration:revert -d ./src/app.config.ts"
+    "migration:revert": "cross-env NODE_ENV=dev npm run typeorm -- migration:revert -d ./src/app.config.ts",
+    "migration:run:prod": "cross-env NODE_ENV=prod npm run typeorm -- migration:run -d ./src/app.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

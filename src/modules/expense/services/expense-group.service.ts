@@ -1,8 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
+import { fk } from '@utils/db';
 
 import { CreateExpenseGroupDto } from '../dtos/create-expense-group.dto';
 import { UpdateExpenseGroupDto } from '../dtos/update-expense-group.dto';
@@ -29,7 +31,7 @@ export class ExpenseGroupService {
 
   async findById(user: User, id: string): Promise<ExpenseGroup> {
     const group =
-      user && id ? await this.groupRepo.findOne({ where: { id, createdBy: user } }) : null;
+      user && id ? await this.groupRepo.findOne({ where: { id, createdBy: fk(user) } }) : null;
 
     if (!group) {
       throw new NotFoundException('Expense Group not found');
@@ -52,7 +54,11 @@ export class ExpenseGroupService {
 
   async remove(user: User, id: string): Promise<ExpenseGroup> {
     const group = await this.findById(user, id);
-    const hasExpense = await this.expenseRepo.findOne({ where: { group }, select: ['id'] });
+
+    const hasExpense = await this.expenseRepo.findOne({
+      where: { group: fk(group) },
+      select: ['id'],
+    });
 
     if (hasExpense) {
       throw new ConflictException('Cannot delete group with associated expenses');

@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+
 import { Repository } from 'typeorm';
 
 import { User } from '@modules/user/entities/user.entity';
@@ -62,7 +63,7 @@ describe('PaymentMethodService', () => {
 
       const result = await service.create(user, dto);
 
-      expect(result).toEqual(method);
+      expect(result).toEqual({ id: 'pmid', ...dto });
       expect(paymentRepo.create).toHaveBeenCalledWith({ ...dto, user });
       expect(paymentRepo.save).toHaveBeenCalledWith(method);
     });

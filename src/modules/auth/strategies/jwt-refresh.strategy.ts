@@ -2,11 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { Request } from 'express';
 import { Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
 
 import { UserService } from '@modules/user/user.service';
+import { fk } from '@utils/db';
 
 import { AuthStrategyName } from '../auth.constants';
 import { AuthToken } from '../entities/token.entity';
@@ -37,7 +39,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, AuthStrateg
     const [user, token] = await Promise.all([
       this.userService.findOneById(userId),
       this.tokenRepo.findOne({
-        where: { user: { id: userId }, device },
+        where: { user: fk(userId), device },
         select: ['id', 'refreshTokenHash'],
       }),
     ]);

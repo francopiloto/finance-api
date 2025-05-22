@@ -1,5 +1,4 @@
-import { applyDecorators } from '@nestjs/common';
-import { PrimaryColumn, PrimaryColumnOptions } from 'typeorm';
+import { BeforeInsert, PrimaryColumn, PrimaryColumnOptions } from 'typeorm';
 import { uuidv7 } from 'uuidv7';
 
 /**
@@ -11,27 +10,24 @@ import { uuidv7 } from 'uuidv7';
  * id: string;
  */
 export function PrimaryUuidColumn(options: PrimaryColumnOptions = {}) {
-  return applyDecorators(
-    PrimaryColumn({ type: 'uuid', ...options }),
+  return function (target: any, propertyKey: string) {
+    PrimaryColumn({ type: 'uuid', ...options })(target, propertyKey);
 
-    // Use initializer to assign UUIDv7 if value is not provided
-    (target: object, propertyKey: string | symbol) => {
-      const privateKey = Symbol(`__${String(propertyKey)}__`);
+    const hookName = `__generateUuidBeforeInsert__${propertyKey}`;
 
-      Object.defineProperty(target, propertyKey, {
-        get() {
-          if (!this[privateKey]) {
-            this[privateKey] = uuidv7();
+    if (!target[hookName]) {
+      Object.defineProperty(target, hookName, {
+        value: function () {
+          if (!this[propertyKey]) {
+            this[propertyKey] = uuidv7();
           }
-
-          return this[privateKey];
         },
-        set(value: string) {
-          this[privateKey] = value;
-        },
-        enumerable: true,
-        configurable: true,
+        writable: false,
+        enumerable: false,
+        configurable: false,
       });
-    },
-  );
+
+      BeforeInsert()(target, hookName);
+    }
+  };
 }

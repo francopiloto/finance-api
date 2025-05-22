@@ -1,6 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
 import { DataSource, EntityTarget } from 'typeorm';
+
+import { fk } from '@utils/db';
 
 import { OWNER_ENTITY_KEY, OWNER_PARAM_KEY } from '../auth.constants';
 
@@ -29,7 +32,7 @@ export class OwnershipGuard implements CanActivate {
     }
 
     const repo = this.dataSource.getRepository(entity);
-    const resource = await repo.findOne({ where: { id: resourceId, user } });
+    const resource = await repo.findOne({ where: { id: resourceId, user: fk(user) } });
 
     if (!resource) {
       throw new NotFoundException('Resource not found');
