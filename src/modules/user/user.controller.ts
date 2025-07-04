@@ -1,14 +1,20 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
-import { ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
 import { CurrentUser } from '@modules/auth/decorators';
 
+import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 
-@Controller('user')
+@Controller('users')
 @ApiDefaultAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -21,7 +27,14 @@ export class UserController {
     return this.userService.findOneByIdOrFail(user.id);
   }
 
-  @Patch('me')
+  @Post()
+  @ApiOperation({ summary: 'Create user profile' })
+  @ApiCreatedResponse({ description: 'User profile created successfully.', type: User })
+  create(@Body() data: CreateUserDto) {
+    return this.userService.create(data);
+  }
+
+  @Patch()
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiOkResponse({ description: 'User updated successfully.', type: User })
   @ApiNotFoundResponse({ description: 'User not found.' })

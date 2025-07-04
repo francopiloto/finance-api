@@ -19,19 +19,6 @@ export class UserService {
     return id ? this.userRepo.findOneBy({ id }) : Promise.resolve(null);
   }
 
-  findOneByEmail(email: string) {
-    return email ? this.userRepo.findOneBy({ email }) : Promise.resolve(null);
-  }
-
-  findOneByEmailWithPassword(email: string) {
-    return this.userRepo
-      .createQueryBuilder('user')
-      .select('user')
-      .addSelect('user.password')
-      .where('user.email = :email', { email })
-      .getOne();
-  }
-
   async findOneByIdOrFail(id: string) {
     const user = await this.findOneById(id);
 
@@ -40,6 +27,10 @@ export class UserService {
     }
 
     return user;
+  }
+
+  findOneByEmail(email: string) {
+    return email ? this.userRepo.findOneBy({ email }) : Promise.resolve(null);
   }
 
   async create(data: CreateUserDto) {

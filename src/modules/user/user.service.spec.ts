@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 const mockUserRepo = () => ({
   find: jest.fn(),
   findOneBy: jest.fn(),
+  create: jest.fn(),
   save: jest.fn(),
 });
 
@@ -27,6 +28,15 @@ describe('UserService', () => {
 
     service = module.get<UserService>(UserService);
     userRepo = module.get(getRepositoryToken(User));
+  });
+
+  describe('findAll', () => {
+    it('should return all users', async () => {
+      userRepo.find.mockResolvedValue([user]);
+
+      const result = await service.findAll();
+      expect(result).toEqual([user]);
+    });
   });
 
   describe('findOneById', () => {
@@ -56,6 +66,35 @@ describe('UserService', () => {
     it('should throw if user not found', async () => {
       userRepo.findOneBy.mockResolvedValue(null);
       await expect(service.findOneByIdOrFail('invalid')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findOneByEmail', () => {
+    it('should return a user', async () => {
+      userRepo.findOneBy.mockResolvedValue(user);
+
+      const result = await service.findOneByEmail(user.email);
+      expect(result).toEqual(user);
+    });
+
+    it('should return null if user not found', async () => {
+      userRepo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.findOneByEmail('notfound@example.com');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('create', () => {
+    it('should create and return a user', async () => {
+      userRepo.create.mockReturnValue({ ...user });
+      userRepo.save.mockResolvedValue(user);
+
+      const result = await service.create({ name: user.name, email: user.email });
+
+      expect(userRepo.create).toHaveBeenCalledWith({ name: user.name, email: user.email });
+      expect(userRepo.save).toHaveBeenCalledWith(user);
+      expect(result).toEqual(user);
     });
   });
 

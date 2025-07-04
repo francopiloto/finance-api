@@ -1,8 +1,8 @@
-import { ApiHideProperty } from '@nestjs/swagger';
-
-import { Column, CreateDateColumn, Entity, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, UpdateDateColumn } from 'typeorm';
 
 import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
+
+import { OnboardingStep } from '../enums/onboarding-step.enum';
 
 @Entity()
 export class User {
@@ -12,12 +12,16 @@ export class User {
   @Column({ length: 255 })
   name: string;
 
+  @Index()
   @Column({ unique: true, length: 255 })
   email: string;
 
-  @Column({ select: false })
-  @ApiHideProperty()
-  password: string;
+  @Column({
+    type: 'enum',
+    enum: OnboardingStep,
+    default: OnboardingStep.FINISH,
+  })
+  onboardingStep: OnboardingStep;
 
   @CreateDateColumn()
   createdAt: Date;

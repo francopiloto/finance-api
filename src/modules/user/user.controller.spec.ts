@@ -1,18 +1,22 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
-const mockUserService = () => ({ findOneByIdOrFail: jest.fn(), update: jest.fn() });
+const mockUserService = () => ({
+  findOneByIdOrFail: jest.fn(),
+  update: jest.fn(),
+  create: jest.fn(),
+});
 
 const mockUser: User = {
   id: 'user-id',
   name: 'John Doe',
   email: 'john@example.com',
-  password: 'hidden',
   createdAt: new Date(),
   updatedAt: new Date(),
 } as User;
@@ -45,6 +49,17 @@ describe('UserController', () => {
       await expect(controller.getProfile({ id: 'invalid' } as User)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('create', () => {
+    it('should create a user profile', async () => {
+      const dto: CreateUserDto = { name: mockUser.name, email: mockUser.email };
+      service.create.mockResolvedValue(mockUser);
+
+      const result = await controller.create(dto);
+      expect(result).toEqual(mockUser);
+      expect(service.create).toHaveBeenCalledWith(dto);
     });
   });
 
