@@ -3,17 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 
 import { Strategy } from 'passport-jwt';
+import { Repository } from 'typeorm';
 
-import { UserService } from '@modules/user/user.service';
-
-import { AuthStrategyName } from '../auth.constants';
+import { AuthStrategyName } from '../auth.enums';
+import { AuthAccount } from '../entities/auth-account.entity';
 import { jwtFromRequest } from '../token/token.utils';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, AuthStrategyName.JWT) {
   constructor(
     readonly configService: ConfigService,
-    private readonly userService: UserService,
+    private readonly accountRepo: Repository<AuthAccount>,
   ) {
     super({
       jwtFromRequest,
@@ -22,13 +22,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthStrategyName.JWT
     });
   }
 
-  async validate({ sub: userId, aud: device }: { sub: string; aud: string }) {
-    const user = await this.userService.findOneById(userId);
+  async validate({ sub: accountId, aud: device }: { sub: string; aud: string }) {
+    const account = await this.accountRepo.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
 
-    if (user) {
-      return [user, { device }];
+    if (!account) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    throw new UnauthorizedException('Invalid credentials');
+    return [account.user ?? null, { account, device }];
   }
 }

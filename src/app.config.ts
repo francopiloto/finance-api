@@ -45,5 +45,12 @@ export async function appConfig() {
       expiresIn: process.env.AUTH_JWT_EXPIRES_IN || '1h',
       refreshExpiresIn: process.env.AUTH_JWT_REFRESH_EXPIRES_IN || '1d',
     },
+    oauth: {
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+      },
+    },
   };
 }

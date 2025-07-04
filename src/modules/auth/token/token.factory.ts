@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 
 import { addDays } from 'date-fns';
 
-import { User } from '@modules/user/entities/user.entity';
+import { AuthAccount } from '../entities/auth-account.entity';
 
 @Injectable()
 export class TokenFactory {
@@ -15,8 +15,13 @@ export class TokenFactory {
     private readonly configService: ConfigService,
   ) {}
 
-  async generateTokens(user: User, device: string) {
-    const payload = { sub: user.id, aud: device };
+  async generateTokens(account: AuthAccount, device: string) {
+    const payload = {
+      sub: account.id,
+      aud: device,
+      userId: account.user?.id ?? null,
+      onboardingStep: account.user?.onboardingStep ?? null,
+    };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, { expiresIn: this.configService.get('jwt.expiresIn') }),
@@ -26,7 +31,7 @@ export class TokenFactory {
     ]);
 
     const tokenRecord = {
-      user,
+      account,
       device,
       refreshTokenHash: this.hashToken(refreshToken),
       expiresAt: addDays(new Date(), 7),

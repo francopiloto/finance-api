@@ -4,7 +4,8 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { Observable } from 'rxjs';
 
-import { AuthStrategyName, DISABLE_DEFAULT_AUTH_GUARD_KEY } from '../auth.constants';
+import { DISABLE_DEFAULT_AUTH_GUARD_KEY } from '../auth.constants';
+import { AuthStrategyName } from '../auth.enums';
 
 @Injectable()
 export class DefaultAuthGuard extends AuthGuard([AuthStrategyName.JWT]) {
