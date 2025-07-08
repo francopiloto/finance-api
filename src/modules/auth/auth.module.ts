@@ -5,10 +5,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { UserModule } from '@modules/user/user.module';
-
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthAccount } from './entities/auth-account.entity';
 import { AuthToken } from './entities/token.entity';
 import { DefaultAuthGuard } from './guards/default.guard';
 import { RefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
@@ -25,8 +24,7 @@ import { TokenFactory } from './token/token.factory';
         signOptions: { expiresIn: config.get('jwt.expiresIn') },
       }),
     }),
-    TypeOrmModule.forFeature([AuthToken]),
-    UserModule,
+    TypeOrmModule.forFeature([AuthToken, AuthAccount]),
   ],
   providers: [
     AuthService,

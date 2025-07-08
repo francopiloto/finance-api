@@ -14,14 +14,14 @@ export class AuthAccount {
   @PrimaryUuidColumn()
   id: string;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  user: User;
-
   @Column({ type: 'enum', enum: AuthProvider })
   provider: AuthProvider;
 
   @Column({ nullable: true })
   providerUserId?: string;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  user?: User;
 
   @Column({ nullable: true })
   email?: string;

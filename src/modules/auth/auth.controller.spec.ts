@@ -1,16 +1,18 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { User } from '@modules/user/entities/user.entity';
-
 import { AuthController } from './auth.controller';
+import { AuthProvider } from './auth.enums';
 import { AuthService } from './auth.service';
-import { SignInUserDto } from './dtos/signin-user.dto';
-import { SignUpUserDto } from './dtos/signup-user.dto';
+import { LoginLocalDto } from './dtos/login-local.dto';
+import { RegisterLocalDto } from './dtos/register-local.dto';
+import { AuthAccount } from './entities/auth-account.entity';
+import { OAuthProfile } from './types/oauth';
 
 const mockAuthService = () => ({
-  signup: jest.fn(),
-  signin: jest.fn(),
+  registerLocal: jest.fn(),
+  loginLocal: jest.fn(),
+  loginOAuth: jest.fn(),
   signout: jest.fn(),
   generateTokens: jest.fn(),
 });
@@ -19,7 +21,7 @@ describe('AuthController', () => {
   let controller: AuthController;
   let service: jest.Mocked<AuthService>;
 
-  const user: User = { id: 'user-id' } as User;
+  const account: AuthAccount = { id: 'account-id' } as AuthAccount;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,58 +34,80 @@ describe('AuthController', () => {
   });
 
   describe('signup', () => {
-    it('should call service.signup with dto', async () => {
-      const dto: SignUpUserDto = { name: 'John', email: 'john@example.com', password: '123456' };
-      service.signup.mockResolvedValue(user);
+    it('should call service.registerLocal with dto', async () => {
+      const dto: RegisterLocalDto = { email: 'john@example.com', password: '123456' };
+      const tokens = { accessToken: 'a', refreshToken: 'b' };
+
+      service.registerLocal.mockResolvedValue(tokens);
 
       const result = await controller.signup(dto);
 
-      expect(result).toEqual(user);
-      expect(service.signup).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(tokens);
+      expect(service.registerLocal).toHaveBeenCalledWith(dto);
     });
   });
 
   describe('signin', () => {
-    it('should call service.signin with dto', async () => {
-      const dto: SignInUserDto = {
+    it('should call service.loginLocal with dto', async () => {
+      const dto: LoginLocalDto = {
         email: 'john@example.com',
         password: '123456',
         device: 'mobile',
       };
 
       const expected = { accessToken: 'a', refreshToken: 'b' };
-      service.signin.mockResolvedValue(expected);
+      service.loginLocal.mockResolvedValue(expected);
 
       const result = await controller.signin(dto);
 
       expect(result).toEqual(expected);
-      expect(service.signin).toHaveBeenCalledWith(dto);
+      expect(service.loginLocal).toHaveBeenCalledWith(dto);
     });
 
-    it('should throw if service.signin throws', async () => {
+    it('should throw if service.loginLocal throws', async () => {
       const dto = { email: 'wrong@example.com', password: 'bad', device: 'default' };
-      service.signin.mockRejectedValue(new UnauthorizedException('Invalid credentials'));
+      service.loginLocal.mockRejectedValue(new UnauthorizedException('Invalid credentials'));
 
       await expect(controller.signin(dto)).rejects.toThrow(UnauthorizedException);
     });
   });
 
   describe('signout', () => {
-    it('should call service.signout with user id and default device', async () => {
-      await controller.signout('user-id', 'default');
-      expect(service.signout).toHaveBeenCalledWith('user-id', 'default');
+    it('should call service.signout with account id and default device', async () => {
+      await controller.signout('account-id', 'web');
+      expect(service.signout).toHaveBeenCalledWith('account-id', 'web');
     });
   });
 
   describe('refresh', () => {
-    it('should call service.generateTokens with user and default device on refresh', async () => {
-      const resultMock = { accessToken: 'x', refreshToken: 'y' };
-      service.generateTokens.mockResolvedValue(resultMock);
+    it('should call service.generateTokens with account and device', async () => {
+      const tokens = { accessToken: 'x', refreshToken: 'y' };
+      service.generateTokens.mockResolvedValue(tokens);
 
-      const result = await controller.refresh(user, 'default');
+      const result = await controller.refresh(account, 'web');
 
-      expect(result).toEqual(resultMock);
-      expect(service.generateTokens).toHaveBeenCalledWith(user, 'default');
+      expect(result).toEqual(tokens);
+      expect(service.generateTokens).toHaveBeenCalledWith(account, 'web');
+    });
+  });
+
+  describe('googleCallback', () => {
+    it('should call service.loginOAuth with profile and device', async () => {
+      const profile: OAuthProfile = {
+        provider: AuthProvider.GOOGLE,
+        providerUserId: 'google-123',
+        email: 'user@example.com',
+        avatarUrl: 'url',
+      };
+
+      const tokens = { accessToken: 'a', refreshToken: 'b' };
+
+      service.loginOAuth.mockResolvedValue(tokens);
+
+      const result = await controller.googleCallback(profile, 'mobile');
+
+      expect(result).toEqual(tokens);
+      expect(service.loginOAuth).toHaveBeenCalledWith(profile, 'mobile');
     });
   });
 });

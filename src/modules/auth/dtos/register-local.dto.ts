@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class RegisterLocalDto {
   @IsEmail()
@@ -8,4 +8,9 @@ export class RegisterLocalDto {
   @IsString()
   @Length(6, 100)
   password: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(3, 100)
+  device?: string;
 }
