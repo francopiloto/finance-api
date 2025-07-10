@@ -3,8 +3,8 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import { Column, CreateDateColumn, Entity, Index, ManyToOne, UpdateDateColumn } from 'typeorm';
 
 import { PrimaryUuidColumn } from '@decorators/primary-uuid-column.decorator';
+import { User } from '@modules/user/entities/user.entity';
 
-import { User } from '../../user/entities/user.entity';
 import { AuthProvider } from '../auth.enums';
 
 @Entity()
@@ -21,7 +21,7 @@ export class AuthAccount {
   providerUserId?: string;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
-  user?: User;
+  user?: User | null;
 
   @Column({ nullable: true })
   email?: string;

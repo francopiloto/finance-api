@@ -7,7 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { EntityManager, IsNull, Not, Repository } from 'typeorm';
+
+import { User } from '@modules/user/entities/user.entity';
 
 import { AuthProvider } from './auth.enums';
 import { LoginLocalDto } from './dtos/login-local.dto';
@@ -102,17 +104,59 @@ export class AuthService {
     return this.generateTokens(account, device);
   }
 
-  async generateTokens(account: AuthAccount, device = 'default') {
+  async generateTokens(account: AuthAccount, device = 'default', manager?: EntityManager) {
+    const tokenRepo = manager?.getRepository(AuthToken) ?? this.tokenRepo;
+
     const { accessToken, refreshToken, tokenRecord } = await this.tokenFactory.generateTokens(
       account,
       device,
     );
 
-    await this.tokenRepo.upsert(this.tokenRepo.create(tokenRecord), ['account', 'device']);
+    await tokenRepo.upsert(tokenRepo.create(tokenRecord), ['account', 'device']);
     return { accessToken, refreshToken };
   }
 
   async signout(accountId: string, device = 'default') {
     await this.tokenRepo.delete({ account: { id: accountId }, device });
+  }
+
+  async assignUserToAccount(
+    account: AuthAccount,
+    user: User,
+    device: string,
+    manager?: EntityManager,
+  ) {
+    if (account.user) {
+      throw new ConflictException('This account is already assigned to a user');
+    }
+
+    const repo = manager?.getRepository(AuthAccount) ?? this.accountRepo;
+
+    const accountsToAssign = await repo.find({
+      where: {
+        email: user.email,
+        verified: true,
+        user: IsNull(),
+        id: Not(account.id),
+      },
+    });
+
+    accountsToAssign.push(account);
+
+    for (const acc of accountsToAssign) {
+      acc.user = user;
+    }
+
+    await repo.save(accountsToAssign);
+
+    const updatedAccount = await repo.findOneOrFail({
+      where: { id: account.id },
+      relations: ['user'],
+    });
+
+    return {
+      user: updatedAccount.user,
+      ...(await this.generateTokens(updatedAccount, device, manager)),
+    };
   }
 }

@@ -34,5 +34,6 @@ import { TokenFactory } from './token/token.factory';
     { provide: APP_GUARD, useClass: DefaultAuthGuard },
   ],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}
