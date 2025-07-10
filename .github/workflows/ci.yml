@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - development
+
+  pull_request:
+    branches:
+      - main
+      - development
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint codebase
+        run: yarn lint
+
+      - name: Run unit tests
+        run: yarn test:cov
+
+      - name: Compile project
+        run: yarn build
+
+      - name: Upload coverage reports to Codecov
+        if: env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
