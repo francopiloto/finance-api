@@ -44,3 +44,4 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           token: ${{ env.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info

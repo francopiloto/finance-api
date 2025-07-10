@@ -16,7 +16,7 @@ module.exports = {
     '!src/**/__tests__/**',
     '!src/**/__mocks__/**',
   ],
-  coverageDirectory: '../coverage',
+  coverageDirectory: './coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@decorators/(.*)$': '<rootDir>/src/decorators/$1',
