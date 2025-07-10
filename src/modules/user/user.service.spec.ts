@@ -85,19 +85,6 @@ describe('UserService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create and return a user', async () => {
-      userRepo.create.mockReturnValue({ ...user });
-      userRepo.save.mockResolvedValue(user);
-
-      const result = await service.create({ name: user.name, email: user.email });
-
-      expect(userRepo.create).toHaveBeenCalledWith({ name: user.name, email: user.email });
-      expect(userRepo.save).toHaveBeenCalledWith(user);
-      expect(result).toEqual(user);
-    });
-  });
-
   describe('update', () => {
     it('should update and return the user', async () => {
       const dto: UpdateUserDto = { name: 'Updated Name' };

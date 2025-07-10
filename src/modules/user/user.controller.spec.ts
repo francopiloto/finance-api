@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
+import { UserOnboardingService } from './user-onboarding.service';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -11,6 +12,10 @@ const mockUserService = () => ({
   findOneByIdOrFail: jest.fn(),
   update: jest.fn(),
   create: jest.fn(),
+});
+
+const mockOnboardingService = () => ({
+  createUserAndAssignAccount: jest.fn(),
 });
 
 const mockUser: User = {
@@ -23,28 +28,33 @@ const mockUser: User = {
 
 describe('UserController', () => {
   let controller: UserController;
-  let service: jest.Mocked<UserService>;
+  let userService: jest.Mocked<UserService>;
+  let onboardingService: jest.Mocked<UserOnboardingService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [{ provide: UserService, useFactory: mockUserService }],
+      providers: [
+        { provide: UserService, useFactory: mockUserService },
+        { provide: UserOnboardingService, useFactory: mockOnboardingService },
+      ],
     }).compile();
 
     controller = module.get<UserController>(UserController);
-    service = module.get(UserService);
+    userService = module.get(UserService);
+    onboardingService = module.get(UserOnboardingService);
   });
 
   describe('getProfile', () => {
     it('should return user profile', async () => {
-      service.findOneByIdOrFail.mockResolvedValue(mockUser);
+      userService.findOneByIdOrFail.mockResolvedValue(mockUser);
 
       const result = await controller.getProfile(mockUser);
       expect(result).toEqual(mockUser);
     });
 
     it('should throw if user not found', async () => {
-      service.findOneByIdOrFail.mockRejectedValue(new NotFoundException());
+      userService.findOneByIdOrFail.mockRejectedValue(new NotFoundException());
 
       await expect(controller.getProfile({ id: 'invalid' } as User)).rejects.toThrow(
         NotFoundException,
@@ -53,13 +63,24 @@ describe('UserController', () => {
   });
 
   describe('create', () => {
-    it('should create a user profile', async () => {
+    it('should create and assign user profile', async () => {
       const dto: CreateUserDto = { name: mockUser.name, email: mockUser.email };
-      service.create.mockResolvedValue(mockUser);
+      const tokens = { accessToken: 'abc', refreshToken: 'xyz' };
+      const resultMock = { user: mockUser, ...tokens };
+      const accountMock = { id: 'acc-id' } as any;
+      const device = 'web';
 
-      const result = await controller.create(dto);
-      expect(result).toEqual(mockUser);
-      expect(service.create).toHaveBeenCalledWith(dto);
+      onboardingService.createUserAndAssignAccount.mockResolvedValue(resultMock);
+
+      const result = await controller.create(dto, accountMock, device);
+
+      expect(result).toEqual(resultMock);
+
+      expect(onboardingService.createUserAndAssignAccount).toHaveBeenCalledWith(
+        dto,
+        accountMock,
+        device,
+      );
     });
   });
 
@@ -68,11 +89,11 @@ describe('UserController', () => {
       const dto: UpdateUserDto = { name: 'Updated' };
       const updatedUser = { ...mockUser, ...dto };
 
-      service.update.mockResolvedValue(updatedUser);
+      userService.update.mockResolvedValue(updatedUser);
 
       const result = await controller.update(mockUser, dto);
       expect(result).toEqual(updatedUser);
-      expect(service.update).toHaveBeenCalledWith(mockUser.id, dto);
+      expect(userService.update).toHaveBeenCalledWith(mockUser.id, dto);
     });
   });
 });

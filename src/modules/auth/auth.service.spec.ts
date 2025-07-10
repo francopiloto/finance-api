@@ -21,8 +21,10 @@ jest.mock('bcrypt', () => ({
 import * as bcrypt from 'bcrypt';
 
 const mockAccountRepo = () => ({
+  find: jest.fn(),
   findOne: jest.fn(),
   findOneBy: jest.fn(),
+  findOneOrFail: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
 });
@@ -283,6 +285,31 @@ describe('AuthService', () => {
 
       expect(result).toEqual(tokens);
       expect(tokenRepo.upsert).toHaveBeenCalledWith(tokenRecord, ['account', 'device']);
+    });
+  });
+
+  describe('assignUserToAccount', () => {
+    it('should throw if account already has user', async () => {
+      const acc = { ...account, user: { id: 'some-user' } } as AuthAccount;
+
+      await expect(
+        service.assignUserToAccount(acc, { id: 'user-id' } as any, 'device'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should assign current and other accounts with same email and verified', async () => {
+      const acc = { ...account, user: null } as AuthAccount;
+      const otherAcc = { ...acc, id: 'acc2' };
+      const user = { id: 'user-id', email: acc.email } as any;
+      const tokens = { accessToken: 'access', refreshToken: 'refresh' };
+
+      accountRepo.find.mockResolvedValue([otherAcc]);
+      accountRepo.findOneOrFail.mockResolvedValue({ ...acc, user });
+
+      jest.spyOn(service as any, 'generateTokens').mockResolvedValue(tokens);
+
+      const result = await service.assignUserToAccount(acc, user, 'web');
+      expect(result).toEqual({ user, ...tokens });
     });
   });
 });
