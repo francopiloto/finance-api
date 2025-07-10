@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -31,11 +30,6 @@ export class UserService {
 
   findOneByEmail(email: string) {
     return email ? this.userRepo.findOneBy({ email }) : Promise.resolve(null);
-  }
-
-  async create(data: CreateUserDto) {
-    const user = this.userRepo.create(data);
-    return this.userRepo.save(user);
   }
 
   async update(id: string, data: UpdateUserDto) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -7,17 +7,23 @@ import {
 } from '@nestjs/swagger';
 
 import { ApiDefaultAuth } from '@decorators/api-default-auth.decorator';
-import { CurrentUser } from '@modules/auth/decorators';
+import { CurrentAuthAccount, CurrentAuthInfo, CurrentUser } from '@modules/auth/decorators';
+import { AuthAccount } from '@modules/auth/entities/auth-account.entity';
+import { VerifiedAccountGuard } from '@modules/auth/guards/verified.guard';
 
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
+import { UserOnboardingService } from './user-onboarding.service';
 import { UserService } from './user.service';
 
 @Controller('users')
 @ApiDefaultAuth()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userOnboardingService: UserOnboardingService,
+  ) {}
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
@@ -28,10 +34,15 @@ export class UserController {
   }
 
   @Post()
+  @UseGuards(VerifiedAccountGuard)
   @ApiOperation({ summary: 'Create user profile' })
   @ApiCreatedResponse({ description: 'User profile created successfully.', type: User })
-  create(@Body() data: CreateUserDto) {
-    return this.userService.create(data);
+  create(
+    @Body() data: CreateUserDto,
+    @CurrentAuthAccount() account: AuthAccount,
+    @CurrentAuthInfo('device') device: string,
+  ) {
+    return this.userOnboardingService.createUserAndAssignAccount(data, account, device);
   }
 
   @Patch()
